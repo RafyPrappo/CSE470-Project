@@ -1,7 +1,7 @@
 import { useState } from "react";
 import "./ProductCard.css";
 
-function ProductCard({ product, onAddToCart }) {
+function ProductCard({ product, onAddToCart, onNotify, isLoggedIn }) {
   const [imageError, setImageError] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
@@ -44,22 +44,23 @@ function ProductCard({ product, onAddToCart }) {
       await onAddToCart(product, quantity);
       setQuantity(1);
       setShowQuantitySelector(false);
-      
-      // Show toast notification
-      const toast = document.createElement('div');
-      toast.className = 'cart-toast';
-      toast.innerHTML = `✅ Added ${quantity} × ${product.name} to cart`;
-      document.body.appendChild(toast);
-      
-      setTimeout(() => {
-        toast.remove();
-      }, 3000);
-      
     } catch (error) {
       console.error("Failed to add to cart:", error);
-      alert("Failed to add to cart. Please try again.");
     } finally {
       setIsAddingToCart(false);
+    }
+  };
+
+  const handleButtonClick = () => {
+    if (!isLoggedIn) {
+      onAddToCart(product, 0); // This will trigger the login prompt
+      return;
+    }
+    
+    if (status === 'out-of-stock') {
+      onNotify(product);
+    } else {
+      setShowQuantitySelector(true);
     }
   };
 
@@ -133,11 +134,12 @@ function ProductCard({ product, onAddToCart }) {
           <div className="cart-section">
             {!showQuantitySelector ? (
               <button 
-                className="action-btn cart-btn"
-                onClick={() => setShowQuantitySelector(true)}
+                className={`action-btn cart-btn ${!isLoggedIn ? 'disabled' : ''}`}
+                onClick={handleButtonClick}
+                title={!isLoggedIn ? "Login to add items to cart" : ""}
               >
                 <span>🛒</span>
-                Add to Cart
+                {isLoggedIn ? 'Add to Cart' : 'Login to Buy'}
               </button>
             ) : (
               <div className="quantity-selector">
@@ -188,15 +190,17 @@ function ProductCard({ product, onAddToCart }) {
 
         {status === 'out-of-stock' && (
           <button 
-            className="action-btn notify-btn"
-            onClick={() => {/* Notify when available */}}
+            className={`action-btn notify-btn ${!isLoggedIn ? 'disabled' : ''}`}
+            onClick={handleButtonClick}
+            disabled={!isLoggedIn}
+            title={!isLoggedIn ? "Login to get notified" : ""}
           >
             <span>🔔</span>
-            Notify Me
+            {isLoggedIn ? 'Notify Me' : 'Login to Notify'}
           </button>
         )}
 
-        {status === 'low-stock' && (
+        {status === 'low-stock' && isLoggedIn && (
           <div className="low-stock-warning">
             <span>⚡ Hurry! Only {product.stock} left</span>
           </div>

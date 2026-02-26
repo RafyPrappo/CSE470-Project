@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import ProductCard from "../components/ProductCard";
 import "./Products.css";
 
@@ -11,6 +13,11 @@ function Products() {
   const [error, setError] = useState(null);
   const [isFiltering, setIsFiltering] = useState(false);
   const [badgeExiting, setBadgeExiting] = useState(false);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const [promptProduct, setPromptProduct] = useState(null);
+  
+  const navigate = useNavigate();
+  const { isAuthenticated, user, token } = useAuth();
 
   useEffect(() => {
     fetchProducts();
@@ -33,16 +40,26 @@ function Products() {
   };
 
   const handleAddToCart = async (product, quantity) => {
+    // Check if user is logged in
+    if (!isAuthenticated) {
+      setPromptProduct({ product, quantity });
+      setShowLoginPrompt(true);
+      return;
+    }
+
+    // Check if trying to add more than available stock
     if (quantity > product.stock) {
       alert(`Sorry, only ${product.stock} units available`);
       return;
     }
 
     try {
+      // Call the order endpoint to decrease stock
       const response = await fetch(`http://localhost:5000/api/products/${product._id}/order`, {
         method: 'PUT',
         headers: { 
-          "Content-Type": "application/json" 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
         },
         body: JSON.stringify({ quantity }),
       });
@@ -50,15 +67,22 @@ function Products() {
       const data = await response.json();
 
       if (!response.ok) {
+        if (response.status === 401) {
+          // Token expired or invalid
+          setShowLoginPrompt(true);
+          return;
+        }
         throw new Error(data.error || 'Failed to update stock');
       }
 
+      // Update local state with the product returned from server
       setProducts(prevProducts => 
         prevProducts.map(p => 
           p._id === product._id ? data.product : p
         )
       );
 
+      // Update local cart state
       const cartItem = {
         ...product,
         cartQuantity: quantity,
@@ -66,6 +90,7 @@ function Products() {
       };
       setCartItems([...cartItems, cartItem]);
 
+      // Show success message
       const toast = document.createElement('div');
       toast.className = 'cart-toast';
       toast.innerHTML = `✅ Added ${quantity} × ${product.name} to cart`;
@@ -83,35 +108,17 @@ function Products() {
   };
 
   const handleNotifyMe = async (product) => {
+    if (!isAuthenticated) {
+      setPromptProduct({ product, quantity: 0 });
+      setShowLoginPrompt(true);
+      return;
+    }
+
     try {
       alert(`🔔 We'll notify you when ${product.name} is back in stock!`);
     } catch (error) {
       console.error("Notification error:", error);
       alert("Failed to set notification. Please try again.");
-    }
-  };
-
-  const handleFilterChange = (e) => {
-    const newFilter = e.target.value;
-    
-    // If changing from "all" to something else, show badge exit animation
-    if (filter !== "all" && newFilter === "all") {
-      setBadgeExiting(true);
-      setTimeout(() => {
-        setBadgeExiting(false);
-        setFilter(newFilter);
-      }, 200);
-    } 
-    // If changing to a specific filter, animate the grid
-    else {
-      setIsFiltering(true);
-      setTimeout(() => {
-        setFilter(newFilter);
-        // Slight delay to show the filter change
-        setTimeout(() => {
-          setIsFiltering(false);
-        }, 300);
-      }, 150);
     }
   };
 
@@ -138,6 +145,48 @@ function Products() {
     return filters[filter];
   };
 
+  const handleFilterChange = (e) => {
+    const newFilter = e.target.value;
+    
+    if (filter !== "all" && newFilter === "all") {
+      setBadgeExiting(true);
+      setTimeout(() => {
+        setBadgeExiting(false);
+        setFilter(newFilter);
+      }, 200);
+    } else {
+      setIsFiltering(true);
+      setTimeout(() => {
+        setFilter(newFilter);
+        setTimeout(() => {
+          setIsFiltering(false);
+        }, 300);
+      }, 150);
+    }
+  };
+
+  // Login Prompt Modal
+  const LoginPromptModal = () => (
+    <div className="modal-overlay" onClick={() => setShowLoginPrompt(false)}>
+      <div className="modal-content" onClick={e => e.stopPropagation()}>
+        <div className="modal-icon">🔒</div>
+        <h3>Login Required</h3>
+        <p>Please login or create an account to {promptProduct?.quantity > 0 ? 'add items to cart' : 'get notified'}</p>
+        <div className="modal-actions">
+          <button className="modal-btn secondary" onClick={() => setShowLoginPrompt(false)}>
+            Cancel
+          </button>
+          <button className="modal-btn primary" onClick={() => navigate("/login")}>
+            Login
+          </button>
+          <button className="modal-btn accent" onClick={() => navigate("/register")}>
+            Sign Up
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
   if (loading) {
     return (
       <div className="products-loading">
@@ -162,6 +211,8 @@ function Products() {
 
   return (
     <div className="products-page">
+      {showLoginPrompt && <LoginPromptModal />}
+
       <div className="products-header">
         <h1 className="products-title">
           Our <span className="gradient-text">Collection</span>
@@ -232,6 +283,7 @@ function Products() {
                 product={product}
                 onAddToCart={handleAddToCart}
                 onNotify={handleNotifyMe}
+                isLoggedIn={isAuthenticated}
               />
             ))}
           </div>

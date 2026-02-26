@@ -6,20 +6,10 @@ function Footer() {
   
   return (
     <footer className="footer">
-      <div className="footer-wave">
-        <svg viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M0 0L48 8.8C96 17.6 192 35.2 288 44C384 52.8 480 52.8 576 44C672 35.2 768 17.6 864 8.8C960 0 1056 0 1152 8.8C1248 17.6 1344 35.2 1392 44L1440 52.8V120H1392C1344 120 1248 120 1152 120C1056 120 960 120 864 120C768 120 672 120 576 120C480 120 384 120 288 120C192 120 96 120 48 120H0V0Z" 
-            fill="url(#gradient)" 
-            fillOpacity="0.2"
-          />
-          <defs>
-            <linearGradient id="gradient" x1="0" y1="0" x2="1440" y2="120" gradientUnits="userSpaceOnUse">
-              <stop stopColor="#3B82F6" />
-              <stop offset="1" stopColor="#FBBF24" />
-            </linearGradient>
-          </defs>
-        </svg>
-      </div>
+      {/* Modern gradient separator */}
+      <div className="footer-gradient"></div>
+      <div className="footer-glow"></div>
+      <div className="footer-divider"></div>
       
       <div className="footer-content">
         <div className="footer-grid">
@@ -34,10 +24,10 @@ function Footer() {
               Bridging the gap between Chinese imports and Bangladeshi customers with style.
             </p>
             <div className="social-links">
-              <a href="#" className="social-link">📱</a>
-              <a href="#" className="social-link">💬</a>
-              <a href="#" className="social-link">📧</a>
-              <a href="#" className="social-link">📘</a>
+              <a href="#" className="social-link" aria-label="Facebook">📘</a>
+              <a href="#" className="social-link" aria-label="Instagram">📷</a>
+              <a href="#" className="social-link" aria-label="Twitter">🐦</a>
+              <a href="#" className="social-link" aria-label="LinkedIn">💼</a>
             </div>
           </div>
 
@@ -58,7 +48,7 @@ function Footer() {
             <ul className="footer-links">
               <li><a href="#">Gadgets</a></li>
               <li><a href="#">Minimalist Decor</a></li>
-              <li><a href="#">iPhone Cases</a></li>
+              <li><a href="#">Phone Cases</a></li>
               <li><a href="#">Accessories</a></li>
             </ul>
           </div>

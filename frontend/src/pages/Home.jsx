@@ -1,9 +1,11 @@
 import { Link } from "react-router-dom";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useAuth } from "../context/AuthContext";
 import "./Home.css";
 
 function Home() {
   const statsRef = useRef(null);
+  const { isAdmin } = useAuth();
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -66,10 +68,12 @@ function Home() {
               <span>Explore Products</span>
               <span className="cta-icon">→</span>
             </Link>
-            <Link to="/admin" className="cta-secondary">
-              <span>Admin Dashboard</span>
-              <span className="cta-icon">⚡</span>
-            </Link>
+            {isAdmin && (
+              <Link to="/admin" className="cta-secondary">
+                <span>Admin Dashboard</span>
+                <span className="cta-icon">⚡</span>
+              </Link>
+            )}
           </div>
 
           <div className="hero-stats" ref={statsRef}>

@@ -1,19 +1,33 @@
 import express from "express";
+import mongoose from "mongoose";
+import cors from "cors";
 import dotenv from "dotenv";
-import connectDB from "./config/db.js";
 import productRoutes from "./routes/productRoutes.js";
-import cors from "cors";   // <-- add this
+import authRoutes from "./routes/authRoutes.js";
 
 dotenv.config();
-connectDB();
 
 const app = express();
+const PORT = process.env.PORT || 5000;
 
-// Allow requests from your frontend
+// Middleware
 app.use(cors());
 app.use(express.json());
 
-app.use("/api/products", productRoutes);
+// MongoDB Connection
+mongoose.connect(process.env.MONGODB_URI || "mongodb://localhost:27017/techaesthetics")
+  .then(() => console.log("MongoDB Connected"))
+  .catch(err => console.error("MongoDB Error:", err));
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// Routes
+app.use("/api/products", productRoutes);
+app.use("/api/auth", authRoutes); // Add this
+
+// Test route
+app.get("/", (req, res) => {
+  res.send("Tech-Aesthetics API is running");
+});
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
