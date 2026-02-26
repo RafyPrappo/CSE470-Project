@@ -200,6 +200,18 @@
   animation: slideOutBadge 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
+/* Pre-order badge on product card (existing order) */
+.existing-preorder-badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-top: 0.5rem;
+}
+
 /* Products Grid - Fixed spacing from edges */
 .products-grid {
   display: grid;

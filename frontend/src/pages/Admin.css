@@ -288,6 +288,44 @@
   font-weight: 600;
 }
 
+/* Tab Styles */
+.admin-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.tab-btn {
+  padding: 0.8rem 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 30px;
+  color: var(--gray-300);
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tab-btn:hover {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: rgba(59, 130, 246, 0.3);
+  color: white;
+}
+
+.tab-btn.active {
+  background: linear-gradient(135deg, var(--primary-main), var(--primary-light));
+  border-color: transparent;
+  color: white;
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+}
+
 /* Product List Card */
 .product-list-card {
   grid-column: span 2;
@@ -773,6 +811,7 @@
     transform: translateX(100%);
     opacity: 0;
   }
+
   to {
     transform: translateX(0);
     opacity: 1;
@@ -786,16 +825,16 @@
     align-items: stretch;
     gap: 0.5rem;
   }
-  
+
   .action-btn {
     width: 100%;
     justify-content: center;
   }
-  
+
   .stock-editor {
     width: 100%;
   }
-  
+
   .stock-editor-input {
     flex: 1;
   }
@@ -805,26 +844,26 @@
   .admin-page {
     padding: 1rem;
   }
-  
+
   .stats-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .product-list-header {
     flex-direction: column;
     align-items: stretch;
   }
-  
+
   .search-box {
     width: 100%;
   }
-  
+
   .stock-info-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.2rem;
   }
-  
+
   .stock-percentage {
     align-self: flex-start;
   }
@@ -835,6 +874,7 @@
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);

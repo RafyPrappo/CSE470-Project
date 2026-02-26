@@ -5,7 +5,7 @@ import Product from "../models/Product.js";
 export const addProduct = async (req, res) => {
   try {
     const { name, retailPrice, stock, importCost, category, image } = req.body;
-    
+
     // Validation
     if (!name || !retailPrice || !importCost) {
       return res.status(400).json({ error: "Please fill all required fields" });
@@ -53,13 +53,36 @@ export const getProducts = async (req, res) => {
     // Apply search filter
     if (search) {
       const searchRegex = new RegExp(search, 'i');
-      products = products.filter(product => 
-        searchRegex.test(product.name) || 
+      products = products.filter(product =>
+        searchRegex.test(product.name) ||
         searchRegex.test(product.category)
       );
     }
 
-    res.json(products);
+    // Enhance pre-order products with ETA
+    const { default: Shipment } = await import("../models/Shipment.js");
+    const enhancedProducts = await Promise.all(products.map(async (product) => {
+      let arrivalEstimate = null;
+      if (product.isPreOrder) {
+        const upcomingShipment = await Shipment.findOne({
+          'productsIncluded.product': product._id,
+          status: { $ne: 'DELIVERED' }
+        }).sort({ baseEstimatedArrival: 1 });
+
+        if (upcomingShipment) {
+          const localDeliveryBuffer = 2;
+          const deliveryDate = new Date(upcomingShipment.finalETA);
+          deliveryDate.setDate(deliveryDate.getDate() + localDeliveryBuffer);
+          arrivalEstimate = deliveryDate;
+        }
+      }
+      return {
+        ...product.toJSON(),
+        arrivalEstimate
+      };
+    }));
+
+    res.json(enhancedProducts);
   } catch (error) {
     console.error("Error fetching products:", error);
     res.status(500).json({ error: "Failed to fetch products" });
@@ -71,12 +94,42 @@ export const getProducts = async (req, res) => {
 export const getProductById = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
-    
+
     if (!product) {
       return res.status(404).json({ error: "Product not found" });
     }
-    
-    res.json(product);
+
+    let arrivalEstimate = null;
+
+    // Logic for Feature 4: Arrival Estimator
+    if (product.isPreOrder) {
+      // We need to dynamically import Shipment if not already at the top
+      // Wait, let's just make sure we imported it.
+      // Wait, let's handle the import at the top later or dynamically import it.
+      // Standard static import is better. But I'll do this here to avoid another replace.
+      // Actually, I can use dynamic import here to not mess with the top just yet:
+      const { default: Shipment } = await import("../models/Shipment.js");
+
+      // Find the earliest active shipment containing this product
+      const upcomingShipment = await Shipment.findOne({
+        'productsIncluded.product': product._id,
+        status: { $ne: 'DELIVERED' } // Only look for shipments still in transit
+      }).sort({ baseEstimatedArrival: 1 }); // Sort to get the earliest batch
+
+      if (upcomingShipment) {
+        // We add an extra 2 days buffer for local BD delivery
+        const localDeliveryBuffer = 2;
+        const deliveryDate = new Date(upcomingShipment.finalETA);
+        deliveryDate.setDate(deliveryDate.getDate() + localDeliveryBuffer);
+
+        arrivalEstimate = deliveryDate;
+      }
+    }
+
+    res.json({
+      ...product.toJSON(),
+      arrivalEstimate
+    });
   } catch (error) {
     console.error("Error fetching product:", error);
     res.status(500).json({ error: "Failed to fetch product" });
@@ -87,10 +140,10 @@ export const getProductById = async (req, res) => {
 // @route   GET /api/products/low-stock
 export const getLowStockProducts = async (req, res) => {
   try {
-    const products = await Product.find({ 
-      stock: { $gt: 0, $lt: 5 } 
+    const products = await Product.find({
+      stock: { $gt: 0, $lt: 5 }
     }).sort({ stock: 1 });
-    
+
     res.json(products);
   } catch (error) {
     console.error("Error fetching low stock products:", error);
@@ -102,10 +155,10 @@ export const getLowStockProducts = async (req, res) => {
 // @route   GET /api/products/out-of-stock
 export const getOutOfStockProducts = async (req, res) => {
   try {
-    const products = await Product.find({ 
-      stock: 0 
+    const products = await Product.find({
+      stock: 0
     }).sort({ outOfStockSince: -1 });
-    
+
     res.json(products);
   } catch (error) {
     console.error("Error fetching out of stock products:", error);
@@ -126,21 +179,21 @@ export const orderProduct = async (req, res) => {
     }
 
     const product = await Product.findById(productId);
-    
+
     if (!product) {
       return res.status(404).json({ error: "Product not found" });
     }
 
     // Check if enough stock
     if (product.stock < quantity) {
-      return res.status(400).json({ 
-        error: `Insufficient stock. Only ${product.stock} units available.` 
+      return res.status(400).json({
+        error: `Insufficient stock. Only ${product.stock} units available.`
       });
     }
 
     // Decrease stock
     product.stock -= quantity;
-    
+
     // If stock becomes 0, set outOfStockSince timestamp
     if (product.stock === 0) {
       product.outOfStockSince = new Date();
@@ -150,9 +203,9 @@ export const orderProduct = async (req, res) => {
     }
 
     const updatedProduct = await product.save();
-    
-    res.json({ 
-      message: "Order placed successfully", 
+
+    res.json({
+      message: "Order placed successfully",
       product: updatedProduct,
       orderedQuantity: quantity
     });
@@ -175,14 +228,14 @@ export const updateProductStock = async (req, res) => {
     }
 
     const product = await Product.findById(productId);
-    
+
     if (!product) {
       return res.status(404).json({ error: "Product not found" });
     }
 
     // Update stock
     product.stock = Number(stock);
-    
+
     // Handle outOfStockSince based on new stock value
     if (Number(stock) === 0) {
       product.outOfStockSince = product.outOfStockSince || new Date();
@@ -203,7 +256,7 @@ export const updateProductStock = async (req, res) => {
 export const deleteProduct = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
-    
+
     if (!product) {
       return res.status(404).json({ error: "Product not found" });
     }

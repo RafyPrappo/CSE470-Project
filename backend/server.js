@@ -5,6 +5,8 @@ import dotenv from "dotenv";
 import dns from 'node:dns/promises';
 import productRoutes from "./routes/productRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
+import preOrderRoutes from "./routes/preOrderRoutes.js";
+import shipmentRoutes from "./routes/shipmentRoutes.js";
 
 // FORCE DNS SERVERS - ADD THIS RIGHT AFTER IMPORTS
 try {
@@ -48,6 +50,8 @@ connectDB();
 // Routes
 app.use("/api/products", productRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/preorders", preOrderRoutes);
+app.use("/api/shipments", shipmentRoutes);
 
 // Test route
 app.get("/", (req, res) => {

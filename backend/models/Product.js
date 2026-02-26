@@ -22,6 +22,10 @@ const productSchema = new mongoose.Schema({
     min: [0, "Stock cannot be negative"],
     default: 0,
   },
+  isPreOrder: {
+    type: Boolean,
+    default: false,
+  },
   category: {
     type: String,
     default: "uncategorized",
@@ -46,20 +50,20 @@ const productSchema = new mongoose.Schema({
 });
 
 // Update the updatedAt timestamp before saving
-productSchema.pre('save', function(next) {
+productSchema.pre('save', function (next) {
   this.updatedAt = Date.now();
   next();
 });
 
 // Virtual for checking if product is out of stock for >24 hours
-productSchema.virtual('isHidden').get(function() {
+productSchema.virtual('isHidden').get(function () {
   if (!this.outOfStockSince) return false;
   const hoursSinceOutOfStock = (Date.now() - this.outOfStockSince) / (1000 * 60 * 60);
   return hoursSinceOutOfStock > 24;
 });
 
 // Virtual for product status
-productSchema.virtual('status').get(function() {
+productSchema.virtual('status').get(function () {
   if (this.stock <= 0) return 'out-of-stock';
   if (this.stock < 5) return 'low-stock';
   return 'in-stock';
