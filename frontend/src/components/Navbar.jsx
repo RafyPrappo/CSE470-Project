@@ -28,9 +28,10 @@ function Navbar() {
   // Navigation links - Admin only sees admin panel
   const navLinks = [
     { path: "/", label: "Home" },
-    { path: "/products", label: "Products" },
+    { path: "/categories", label: "Categories" },
+    { path: "/products", label: "All Products" },
     ...(isAuthenticated && !isAdmin ? [{ path: "/my-preorders", label: "My Pre-Orders" }] : []),
-    ...(isAdmin ? [{ path: "/admin", label: "Admin" }] : []),
+    ...(isAdmin ? [{ path: "/admin", label: "Admin Dashboard" }] : []),
   ];
 
   return (
