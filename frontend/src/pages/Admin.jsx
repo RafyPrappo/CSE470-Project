@@ -10,6 +10,7 @@ function Admin() {
     stock: "",
     importCost: "",
     category: "",
+    description: "",
     image: "",
   });
 
@@ -133,6 +134,7 @@ function Admin() {
           stock: "",
           importCost: "",
           category: "",
+          description: "",
           image: "",
         });
         fetchProducts();
@@ -224,7 +226,7 @@ function Admin() {
     }
   };
 
-  const incrementShipmentDelay = async (id, currentDelay) => {
+  const updateShipmentETA = async (id, newDate) => {
     try {
       const res = await fetch(`http://localhost:5000/api/shipments/${id}`, {
         method: "PUT",
@@ -232,15 +234,16 @@ function Admin() {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
         },
-        body: JSON.stringify({ delayInDays: currentDelay + 1 })
+        body: JSON.stringify({ baseEstimatedArrival: newDate })
       });
       if (res.ok) {
         fetchShipments();
         fetchPreOrders(); // Since ETA might change for linked pre-orders
-        showNotification("Delay updated (+1 day)", "success");
+        showNotification("Arrival Date Updated!", "success");
       }
     } catch (err) {
       console.error(err);
+      showNotification("Failed to update date", "error");
     }
   };
 
@@ -462,6 +465,20 @@ function Admin() {
                   <option value="decor">Home Decor</option>
                   <option value="accessories">Accessories</option>
                 </select>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="description">Product Description</label>
+                <textarea
+                  id="description"
+                  name="description"
+                  placeholder="Write a rich, detailed description here..."
+                  value={form.description}
+                  onChange={handleChange}
+                  className="form-input"
+                  style={{ minHeight: '100px', resize: 'vertical' }}
+                  required
+                />
               </div>
 
               <div className="form-row">
@@ -955,14 +972,14 @@ function Admin() {
                         </span>
                       </td>
                       <td>
-                        <button
-                          className="action-btn warning"
-                          style={{ background: 'rgba(245, 158, 11, 0.2)', color: 'var(--warning)', border: '1px solid var(--warning)' }}
-                          onClick={() => incrementShipmentDelay(s._id, s.delayInDays)}
-                          title="Add 1 day to ETA delay"
-                        >
-                          +1 Day Delay
-                        </button>
+                        <input
+                          type="date"
+                          className="form-input"
+                          style={{ padding: '0.4rem', border: '1px solid var(--accent-main)' }}
+                          defaultValue={new Date(s.finalETA).toISOString().split('T')[0]}
+                          onChange={(e) => updateShipmentETA(s._id, e.target.value)}
+                          title="Set Explicit ETA"
+                        />
                       </td>
                     </tr>
                   ))}

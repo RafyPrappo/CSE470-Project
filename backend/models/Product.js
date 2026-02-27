@@ -31,6 +31,10 @@ const productSchema = new mongoose.Schema({
     default: "uncategorized",
     enum: ["gadgets", "cases", "decor", "accessories", "uncategorized"],
   },
+  description: {
+    type: String,
+    default: "",
+  },
   image: {
     type: String,
     default: "",

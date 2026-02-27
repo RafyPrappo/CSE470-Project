@@ -9,6 +9,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import MyPreOrders from "./pages/MyPreOrders";
 import Cart from "./pages/Cart";
+import ProductDetails from "./pages/ProductDetails";
 import "./App.css";
 
 // Protected Route Component for Admin
@@ -60,6 +61,7 @@ function App() {
                 {/* Public Routes */}
                 <Route path="/" element={<Home />} />
                 <Route path="/products" element={<Products />} />
+                <Route path="/product/:id" element={<ProductDetails />} />
 
                 {/* Auth Routes (only when NOT logged in) */}
                 <Route path="/login" element={
