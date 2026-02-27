@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
+import { useCart } from "../context/CartContext";
 import "./Navbar.css";
 
 function Navbar() {
@@ -8,13 +9,14 @@ function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user, logout, isAuthenticated, isAdmin } = useAuth();
+  const { getCartItemCount } = useCart();
 
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 50);
     };
     window.addEventListener("scroll", handleScroll);
-    
+
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
@@ -27,6 +29,7 @@ function Navbar() {
   const navLinks = [
     { path: "/", label: "Home" },
     { path: "/products", label: "Products" },
+    ...(isAuthenticated && !isAdmin ? [{ path: "/my-preorders", label: "My Pre-Orders" }] : []),
     ...(isAdmin ? [{ path: "/admin", label: "Admin" }] : []),
   ];
 
@@ -53,6 +56,18 @@ function Navbar() {
               {location.pathname === link.path && <span className="active-indicator" />}
             </Link>
           ))}
+          {isAuthenticated && (
+            <Link
+              to="/cart"
+              className={`nav-link cart-link ${location.pathname === '/cart' ? "active" : ""}`}
+            >
+              <span>Cart</span>
+              {getCartItemCount() > 0 && (
+                <span className="cart-badge">{getCartItemCount()}</span>
+              )}
+              {location.pathname === '/cart' && <span className="active-indicator" />}
+            </Link>
+          )}
         </div>
 
         {/* User Menu / Auth Links - No emojis */}
@@ -82,7 +97,7 @@ function Navbar() {
         </div>
 
         {/* Mobile Menu Button */}
-        <button 
+        <button
           className="mobile-menu-btn"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           aria-label="Toggle menu"
@@ -104,7 +119,7 @@ function Navbar() {
               <span>{link.label}</span>
             </Link>
           ))}
-          
+
           {/* Mobile Auth Links - No emojis */}
           {!isAuthenticated ? (
             <>
