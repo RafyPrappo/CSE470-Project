@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import "./Admin.css";
@@ -30,6 +30,12 @@ function Admin() {
     destination: "Bangladesh",
     baseEstimatedArrival: ""
   });
+
+  // New state for low stock modal
+  const [showLowStockModal, setShowLowStockModal] = useState(false);
+  
+  // New state for managing multiple toasts
+  const [toasts, setToasts] = useState([]);
 
   const { user, isAdmin, token } = useAuth();
   const navigate = useNavigate();
@@ -286,14 +292,14 @@ function Admin() {
     }
   };
 
+  // Updated showNotification function to manage multiple toasts
   const showNotification = (message, type = "success") => {
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
-    toast.textContent = message;
-    document.body.appendChild(toast);
-
+    const id = Date.now(); // Unique ID for each toast
+    setToasts(prev => [...prev, { id, message, type }]);
+    
+    // Remove toast after 3 seconds
     setTimeout(() => {
-      toast.remove();
+      setToasts(prev => prev.filter(toast => toast.id !== id));
     }, 3000);
   };
 
@@ -338,6 +344,25 @@ function Admin() {
   const outOfStockProducts = products.filter(p => p.stock === 0);
   const totalValue = products.reduce((sum, p) => sum + (p.retailPrice * p.stock), 0);
 
+  // ===== Floating Low Stock Notifications =====
+  const prevLowStock = useRef([]);
+
+  useEffect(() => {
+    const newLowStock = lowStockProducts.filter(
+      (product) => !prevLowStock.current.some((p) => p._id === product._id)
+    );
+
+    newLowStock.forEach((product) => {
+      showNotification(
+        `⚠️ Low stock: ${product.name} (${product.stock} left)`,
+        "error"
+      );
+    });
+
+    prevLowStock.current = lowStockProducts;
+  }, [lowStockProducts]);
+  // ===========================================
+
   if (loading) {
     return (
       <div className="products-loading">
@@ -349,6 +374,22 @@ function Admin() {
 
   return (
     <div className="admin-page">
+      {/* Toast Container for multiple notifications */}
+      <div className="toast-container">
+        {toasts.map((toast, index) => (
+          <div 
+            key={toast.id} 
+            className={`toast ${toast.type}`}
+            style={{ 
+              bottom: `${20 + index * 80}px`, // Stack toasts with 80px gap
+              zIndex: 9999 - index
+            }}
+          >
+            {toast.message}
+          </div>
+        ))}
+      </div>
+
       <div className="admin-header">
         <h1 className="admin-title">
           Admin <span className="gradient-text">Dashboard</span>
@@ -548,7 +589,10 @@ function Admin() {
                 </div>
               </div>
 
-              <div className="stat-box">
+              <div 
+                className="stat-box clickable" 
+                onClick={() => setShowLowStockModal(true)}
+              >
                 <div className="stat-icon">⚠️</div>
                 <div className="stat-details">
                   <span className="stat-value">{lowStockProducts.length}</span>
@@ -573,24 +617,7 @@ function Admin() {
               </div>
             </div>
 
-            {lowStockProducts.length > 0 && (
-              <div className="alert-section">
-                <h3>⚠️ Low Stock Alerts</h3>
-                <ul className="alert-list">
-                  {lowStockProducts.slice(0, 3).map(product => (
-                    <li key={product._id} className="alert-item">
-                      <span>{product.name}</span>
-                      <span className="alert-stock">Only {product.stock} left</span>
-                    </li>
-                  ))}
-                  {lowStockProducts.length > 3 && (
-                    <li className="alert-item more">
-                      <span>+{lowStockProducts.length - 3} more items</span>
-                    </li>
-                  )}
-                </ul>
-              </div>
-            )}
+           
           </div>
 
           {/* Product List */}
@@ -641,7 +668,7 @@ function Admin() {
                       const stockPercentage = Math.min((product.stock / maxStock) * 100, 100);
 
                       return (
-                        <tr key={product._id}>
+                        <tr key={product._id} data-product-id={product._id}>
                           <td className="index-cell">
                             <span className="product-index">{index + 1}</span>
                           </td>
@@ -947,6 +974,91 @@ function Admin() {
             </div>
           </div>
 
+        </div>
+      )}
+
+      {/* Low Stock Modal */}
+      {showLowStockModal && (
+        <div className="modal-overlay" onClick={() => setShowLowStockModal(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>
+                <span className="header-icon">⚠️</span>
+                Low Stock Products ({lowStockProducts.length})
+              </h2>
+              <button className="modal-close" onClick={() => setShowLowStockModal(false)}>×</button>
+            </div>
+            
+            <div className="modal-body">
+              {lowStockProducts.length === 0 ? (
+                <div className="empty-state">
+                  <p>No low stock products found.</p>
+                </div>
+              ) : (
+                <table className="product-table">
+                  <thead>
+                    <tr>
+                      <th>Product</th>
+                      <th>Category</th>
+                      <th>Current Stock</th>
+                      <th>Status</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {lowStockProducts.map(product => (
+                      <tr key={product._id}>
+                        <td>
+                          <div className="product-info-cell">
+                            <span className="product-name">{product.name}</span>
+                          </div>
+                        </td>
+                        <td>{product.category || 'Uncategorized'}</td>
+                        <td>
+                          <span style={{ 
+                            color: product.stock === 0 ? '#EF4444' : 
+                                   product.stock < 5 ? '#F59E0B' : '#10B981',
+                            fontWeight: 'bold'
+                          }}>
+                            {product.stock}
+                          </span>
+                        </td>
+                        <td>
+                          <span className={`status-badge ${product.stock === 0 ? 'out-of-stock' : 'low-stock'}`}>
+                            {product.stock === 0 ? 'Out of Stock' : 'Low Stock'}
+                          </span>
+                        </td>
+                        <td>
+                          <button
+                            className="action-btn edit-btn"
+                            onClick={() => {
+                              setShowLowStockModal(false);
+                              startEditing(product);
+                              // Scroll to product in the main list
+                              setTimeout(() => {
+                                document.querySelector(`[data-product-id="${product._id}"]`)?.scrollIntoView({
+                                  behavior: 'smooth',
+                                  block: 'center'
+                                });
+                              }, 100);
+                            }}
+                          >
+                            Update Stock
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+            
+            <div className="modal-footer">
+              <button className="submit-btn" onClick={() => setShowLowStockModal(false)}>
+                Close
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
