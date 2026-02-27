@@ -108,7 +108,7 @@ export const updatePreOrderStatus = async (req, res) => {
                     origin: "China",
                     destination: "Bangladesh",
                     baseEstimatedArrival: autoEta,
-                    status: "IN_TRANSIT"
+                    status: "PROCESSING"
                 });
                 await newShipment.save();
 
