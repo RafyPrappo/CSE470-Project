@@ -10,6 +10,8 @@ import Register from "./pages/Register";
 import MyPreOrders from "./pages/MyPreOrders";
 import Cart from "./pages/Cart";
 import ProductDetails from "./pages/ProductDetails";
+import CategoryPage from "./pages/CategoryPage";
+import Categories from "./pages/Categories";
 import "./App.css";
 
 // Protected Route Component for Admin
@@ -62,7 +64,8 @@ function App() {
                 <Route path="/" element={<Home />} />
                 <Route path="/products" element={<Products />} />
                 <Route path="/product/:id" element={<ProductDetails />} />
-
+                <Route path="/categories" element={<Categories />} />
+                <Route path="/category/:categoryName" element={<CategoryPage />} />
                 {/* Auth Routes (only when NOT logged in) */}
                 <Route path="/login" element={
                   <PublicRoute>

@@ -7,6 +7,7 @@ import productRoutes from "./routes/productRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import preOrderRoutes from "./routes/preOrderRoutes.js";
 import shipmentRoutes from "./routes/shipmentRoutes.js";
+import categoryRoutes from "./routes/categoryRoutes.js";
 
 // FORCE DNS SERVERS - ADD THIS RIGHT AFTER IMPORTS
 try {
@@ -53,6 +54,7 @@ app.use("/api/products", productRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/preorders", preOrderRoutes);
 app.use("/api/shipments", shipmentRoutes);
+app.use("/api/categories", categoryRoutes);
 
 // Test route
 app.get("/", (req, res) => {
