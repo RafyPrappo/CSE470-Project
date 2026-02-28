@@ -24,6 +24,7 @@ function Admin() {
   // New State variables for Feature 4
   const [activeTab, setActiveTab] = useState("products");
   const [preOrders, setPreOrders] = useState([]);
+  const [shipments, setShipments] = useState([]);
   const [shipmentForm, setShipmentForm] = useState({
     shipmentBatchId: "",
     origin: "China",
@@ -420,7 +421,7 @@ function Admin() {
 
   const lowStockProducts = products.filter(p => p.stock > 0 && p.stock < 5);
   const outOfStockProducts = products.filter(p => p.stock === 0);
-  const totalValue = products.reduce((sum, p) => sum + (p.retailPrice * p.stock), 0);
+  // const totalValue = products.reduce((sum, p) => sum + (p.retailPrice * p.stock), 0);
 
   // ===== Floating Low Stock Notifications =====
   const prevLowStock = useRef([]);
@@ -909,703 +910,447 @@ function Admin() {
         </div>
       )}
 
-      {/* Pre-Orders Tab */}
+      {/* Feature 4: Pre-Orders Management Tab */}
       {
         activeTab === 'preorders' && (
           <div className="admin-grid" style={{ gridTemplateColumns: '1fr' }}>
             <div className="admin-card">
               <div className="card-header">
                 <h2><span className="header-icon">🛒</span> Pre-Order Requests</h2>
+                <p className="card-description">Approve customer pre-orders and assign them to shipments</p>
+              </div>
+
+              <div className="product-table-container">
+                <table className="product-table">
+                  <thead>
+                    <tr>
+                      <th>Order Date</th>
+                      <th>Customer</th>
+                      <th>Product</th>
+                      <th>Qty</th>
+                      <th>Status</th>
+                      <th>Linked Shipment</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {preOrders.map(po => (
+                      <tr key={po._id}>
+                        <td>{new Date(po.createdAt).toLocaleDateString()}</td>
+                        <td>
+                          {po.user?.name}<br />
+                          <small style={{ color: 'var(--gray-500)' }}>{po.user?.email}</small>
+                        </td>
+                        <td>{po.product?.name}</td>
+                        <td>{po.quantity}</td>
+                        <td>
+                          <span className={`status-badge ${po.status.toLowerCase()}`} style={{
+                            background: po.status === 'PENDING' ? 'rgba(245, 158, 11, 0.2)' : 'rgba(16, 185, 129, 0.2)',
+                            color: po.status === 'PENDING' ? 'var(--warning)' : '#10B981',
+                            border: po.status === 'PENDING' ? '1px solid var(--warning)' : '1px solid #10B981'
+                          }}>
+                            {po.status}
+                          </span>
+                        </td>
+                        <td>
+                          {po.shipment ? (
+                            <span style={{ color: '#3b82f6' }}>{po.shipment.shipmentBatchId}</span>
+                          ) : (
+                            <span style={{ color: 'var(--gray-500)' }}>Unassigned</span>
+                          )}
+                        </td>
+                        <td>
+                          <div className="action-cell">
+                            {po.status === 'PENDING' && (
+                              <button
+                                className="action-btn confirm"
+                                style={{ background: 'rgba(16, 185, 129, 0.2)', color: '#10B981' }}
+                                onClick={() => updatePreOrderStatus(po._id, 'APPROVED')}
+                              >
+                                Approve
+                              </button>
+                            )}
+                            {po.status === 'APPROVED' && (
+                              <select
+                                onChange={(e) => {
+                                  if (e.target.value) {
+                                    linkPreOrderToShipment(po._id, e.target.value);
+                                    e.target.value = ""; // Reset dropdown
+                                  }
+                                }}
+                                className="form-input"
+                                style={{ padding: '0.3rem', fontSize: '0.8rem' }}
+                              >
+                                <option value="">Link to Shipment...</option>
+                                {shipments.map(s => (
+                                  <option key={s._id} value={s._id}>{s.shipmentBatchId} (ETA: {new Date(s.finalETA).toLocaleDateString()})</option>
+                                ))}
+                              </select>
+                            )}
+                            {po.status === 'SHIPPED' && (
+                              <button
+                                className="action-btn confirm"
+                                style={{ background: 'rgba(59, 130, 246, 0.2)', color: '#3b82f6' }}
+                                onClick={() => updatePreOrderStatus(po._id, 'DELIVERED')}
+                              >
+                                Mark Delivered
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                    {preOrders.length === 0 && (
+                      <tr><td colSpan="7" style={{ textAlign: 'center', padding: '2rem' }}>No pre-orders found.</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )
+      }
+
+      {/* Feature 4: Shipping Logs Tab */}
+      {
+        activeTab === 'shipments' && (
+          <div className="admin-grid" style={{ gridTemplateColumns: '1fr 2fr' }}>
+
+            <div className="admin-card form-card">
+              <div className="card-header">
+                <h2><span className="header-icon">🚢</span> New Shipment Batch</h2>
+                <p className="card-description">Register an incoming batch from China</p>
+              </div>
+              <form onSubmit={handleCreateShipment} className="admin-form">
+                <div className="form-group">
+                  <label>Batch ID (Unique)</label>
+                  <input type="text" name="shipmentBatchId" className="form-input" required value={shipmentForm.shipmentBatchId} onChange={handleShipmentChange} placeholder="e.g. BATCH-CN-001" />
+                </div>
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Origin</label>
+                    <input type="text" name="origin" className="form-input" value={shipmentForm.origin} onChange={handleShipmentChange} />
+                  </div>
+                  <div className="form-group">
+                    <label>Destination</label>
+                    <input type="text" name="destination" className="form-input" value={shipmentForm.destination} onChange={handleShipmentChange} />
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label>Base Expected Arrival</label>
+                  <input type="date" name="baseEstimatedArrival" className="form-input" required value={shipmentForm.baseEstimatedArrival} onChange={handleShipmentChange} />
+                </div>
+                <button type="submit" className="submit-btn" style={{ marginTop: '1rem' }}>
+                  Create Shipment
+                </button>
+              </form>
+            </div>
+
+            <div className="admin-card">
+              <div className="card-header">
+                <h2><span className="header-icon">📋</span> Active Shipping Routes</h2>
               </div>
               <div className="product-table-container">
                 <table className="product-table">
                   <thead>
                     <tr>
-                      <th>Date</th>
-                      <th>Customer</th>
-                      <th>Product</th>
-                      <th>Qty</th>
+                      <th>Batch ID</th>
+                      <th>Route</th>
                       <th>Status</th>
+                      <th>Final ETA</th>
+                      <th>Delays</th>
                       <th>Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-<<<<<<< HEAD
-  {
-    filteredProducts.map((product, index) => {
-      const profit = getProfitMargin(product.retailPrice, product.importCost);
-      const stockBarColor = getStockBarColor(product.stock);
-      const maxStock = Math.max(...products.map(p => p.stock), 100);
-      const stockPercentage = Math.min((product.stock / maxStock) * 100, 100);
-
-      return (
-        <tr key={product._id} data-product-id={product._id}>
-          <td className="index-cell">
-            <span className="product-index">{index + 1}</span>
-          </td>
-
-          <td>
-            <div className="product-info-cell">
-              <div className="product-details">
-                <span className="product-name">{product.name}</span>
-                <span className="product-category">{product.category || 'Uncategorized'}</span>
-              </div>
-            </div>
-          </td>
-
-          <td>
-            <div className="price-cell">
-              <span className="retail-price">৳{product.retailPrice.toLocaleString()}</span>
-            </div>
-          </td>
-
-          <td>
-            <div className="price-cell">
-              <span className="import-cost">
-                ৳{product.importCost.toLocaleString()}
-              </span>
-            </div>
-          </td>
-
-          <td>
-            <span className={`profit-badge ${profit.class}`}>
-              {profit.value}%
-            </span>
-          </td>
-
-          <td>
-            <div className="stock-cell">
-              <div className="stock-info-header">
-                <span className="stock-current">{formatStockValue(product.stock)}</span>
-                <span className="stock-percentage">{Math.round(stockPercentage)}%</span>
-              </div>
-              <div className="stock-bar-container">
-                <div
-                  className="stock-bar-fill"
-                  style={{
-                    width: `${stockPercentage}%`,
-                    backgroundColor: stockBarColor
-                  }}
-                />
-              </div>
-            </div>
-          </td>
-
-          <td>
-            <span className={`status-badge ${product.status}`}>
-              {product.status === 'in-stock' && 'In Stock'}
-              {product.status === 'low-stock' && 'Low Stock'}
-              {product.status === 'out-of-stock' && 'Out of Stock'}
-            </span>
-          </td>
-
-          <td>
-            <div className="action-cell">
-              {editingId === product._id ? (
-                <div className="stock-editor">
-                  <input
-                    type="number"
-                    min="0"
-                    value={editValue}
-                    onChange={(e) => setEditValue(e.target.value)}
-                    className="stock-editor-input"
-                    autoFocus
-                    onKeyPress={(e) => {
-                      if (e.key === 'Enter') {
-                        handleStockUpdate(product._id, parseInt(editValue) || 0);
-                      }
-                    }}
-                  />
-                  <button
-                    onClick={() => handleStockUpdate(product._id, parseInt(editValue) || 0)}
-                    className="stock-editor-btn confirm"
-                    title="Confirm"
-                  >
-                    ✓
-                  </button>
-                  <button
-                    onClick={cancelEditing}
-                    className="stock-editor-btn cancel"
-                    title="Cancel"
-                  >
-                    ✕
-                  </button>
-                </div>
-              ) : (
-                <>
-                  <button
-                    onClick={() => startEditing(product)}
-                    className="action-btn edit-btn"
-                    title="Edit stock"
-                  >
-                    <span className="action-icon">✎</span>
-                    <span className="action-text">Edit</span>
-                  </button>
-                  <button
-                    onClick={() => handleDelete(product._id)}
-                    className="action-btn delete-btn"
-                    title="Delete product"
-                  >
-                    <span className="action-icon">🗑️</span>
-                    <span className="action-text">Delete</span>
-                  </button>
-                </>
-              )}
-            </div>
-          </td>
-        </tr>
-      );
-    })
-  }
-                  </tbody >
-                </table >
-              </div >
-            )
-}
-          </div >
-        </div >
-      )}
-
-{/* Feature 4: Pre-Orders Management Tab */ }
-{
-  activeTab === 'preorders' && (
-    <div className="admin-grid" style={{ gridTemplateColumns: '1fr' }}>
-      <div className="admin-card">
-        <div className="card-header">
-          <h2><span className="header-icon">🛒</span> Pre-Order Requests</h2>
-          <p className="card-description">Approve customer pre-orders and assign them to shipments</p>
-        </div>
-
-        <div className="product-table-container">
-          <table className="product-table">
-            <thead>
-              <tr>
-                <th>Order Date</th>
-                <th>Customer</th>
-                <th>Product</th>
-                <th>Qty</th>
-                <th>Status</th>
-                <th>Linked Shipment</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {preOrders.map(po => (
-                <tr key={po._id}>
-                  <td>{new Date(po.createdAt).toLocaleDateString()}</td>
-                  <td>
-                    {po.user?.name}<br />
-                    <small style={{ color: 'var(--gray-500)' }}>{po.user?.email}</small>
-                  </td>
-                  <td>{po.product?.name}</td>
-                  <td>{po.quantity}</td>
-                  <td>
-                    <span className={`status-badge ${po.status.toLowerCase()}`} style={{
-                      background: po.status === 'PENDING' ? 'rgba(245, 158, 11, 0.2)' : 'rgba(16, 185, 129, 0.2)',
-                      color: po.status === 'PENDING' ? 'var(--warning)' : '#10B981',
-                      border: po.status === 'PENDING' ? '1px solid var(--warning)' : '1px solid #10B981'
-                    }}>
-                      {po.status}
-                    </span>
-                  </td>
-                  <td>
-                    {po.shipment ? (
-                      <span style={{ color: '#3b82f6' }}>{po.shipment.shipmentBatchId}</span>
-                    ) : (
-                      <span style={{ color: 'var(--gray-500)' }}>Unassigned</span>
+                    {shipments.map(s => (
+                      <tr key={s._id}>
+                        <td style={{ fontWeight: 'bold' }}>{s.shipmentBatchId}</td>
+                        <td>{s.origin} ➝ {s.destination}</td>
+                        <td>{s.status}</td>
+                        <td style={{ color: 'var(--accent-main)' }}>{new Date(s.finalETA).toLocaleDateString()}</td>
+                        <td>
+                          <span style={{ color: s.delayInDays > 0 ? 'var(--warning)' : '#10B981' }}>
+                            {s.delayInDays} days
+                          </span>
+                        </td>
+                        <td>
+                          <input
+                            type="date"
+                            className="form-input"
+                            style={{ padding: '0.4rem', border: '1px solid var(--accent-main)' }}
+                            defaultValue={new Date(s.finalETA).toISOString().split('T')[0]}
+                            onChange={(e) => updateShipmentETA(s._id, e.target.value)}
+                            title="Set Explicit ETA"
+                          />
+                        </td>
+                      </tr>
+                    ))}
+                    {shipments.length === 0 && (
+                      <tr><td colSpan="6" style={{ textAlign: 'center', padding: '2rem' }}>No active shipments.</td></tr>
                     )}
-                  </td>
-                  <td>
-                    <div className="action-cell">
-                      {po.status === 'PENDING' && (
-                        <button
-                          className="action-btn confirm"
-                          style={{ background: 'rgba(16, 185, 129, 0.2)', color: '#10B981' }}
-                          onClick={() => updatePreOrderStatus(po._id, 'APPROVED')}
-                        >
-                          Approve
-                        </button>
-                      )}
-                      {po.status === 'APPROVED' && (
-                        <select
-                          onChange={(e) => {
-                            if (e.target.value) {
-                              linkPreOrderToShipment(po._id, e.target.value);
-                              e.target.value = ""; // Reset dropdown
-                            }
-                          }}
-                          className="form-input"
-                          style={{ padding: '0.3rem', fontSize: '0.8rem' }}
-                        >
-                          <option value="">Link to Shipment...</option>
-                          {shipments.map(s => (
-                            <option key={s._id} value={s._id}>{s.shipmentBatchId} (ETA: {new Date(s.finalETA).toLocaleDateString()})</option>
-                          ))}
-                        </select>
-                      )}
-                      {po.status === 'SHIPPED' && (
-                        <button
-                          className="action-btn confirm"
-                          style={{ background: 'rgba(59, 130, 246, 0.2)', color: '#3b82f6' }}
-                          onClick={() => updatePreOrderStatus(po._id, 'DELIVERED')}
-                        >
-                          Mark Delivered
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {preOrders.length === 0 && (
-                <tr><td colSpan="7" style={{ textAlign: 'center', padding: '2rem' }}>No pre-orders found.</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-{/* Feature 4: Shipping Logs Tab */ }
-{
-  activeTab === 'shipments' && (
-    <div className="admin-grid" style={{ gridTemplateColumns: '1fr 2fr' }}>
-
-      <div className="admin-card form-card">
-        <div className="card-header">
-          <h2><span className="header-icon">🚢</span> New Shipment Batch</h2>
-          <p className="card-description">Register an incoming batch from China</p>
-        </div>
-        <form onSubmit={handleCreateShipment} className="admin-form">
-          <div className="form-group">
-            <label>Batch ID (Unique)</label>
-            <input type="text" name="shipmentBatchId" className="form-input" required value={shipmentForm.shipmentBatchId} onChange={handleShipmentChange} placeholder="e.g. BATCH-CN-001" />
-          </div>
-          <div className="form-row">
-            <div className="form-group">
-              <label>Origin</label>
-              <input type="text" name="origin" className="form-input" value={shipmentForm.origin} onChange={handleShipmentChange} />
-            </div>
-            <div className="form-group">
-              <label>Destination</label>
-              <input type="text" name="destination" className="form-input" value={shipmentForm.destination} onChange={handleShipmentChange} />
-            </div>
-          </div>
-          <div className="form-group">
-            <label>Base Expected Arrival</label>
-            <input type="date" name="baseEstimatedArrival" className="form-input" required value={shipmentForm.baseEstimatedArrival} onChange={handleShipmentChange} />
-          </div>
-          <button type="submit" className="submit-btn" style={{ marginTop: '1rem' }}>
-            Create Shipment
-          </button>
-        </form>
-      </div>
-
-      <div className="admin-card">
-        <div className="card-header">
-          <h2><span className="header-icon">📋</span> Active Shipping Routes</h2>
-        </div>
-        <div className="product-table-container">
-          <table className="product-table">
-            <thead>
-              <tr>
-                <th>Batch ID</th>
-                <th>Route</th>
-                <th>Status</th>
-                <th>Final ETA</th>
-                <th>Delays</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {shipments.map(s => (
-                <tr key={s._id}>
-                  <td style={{ fontWeight: 'bold' }}>{s.shipmentBatchId}</td>
-                  <td>{s.origin} ➝ {s.destination}</td>
-                  <td>{s.status}</td>
-                  <td style={{ color: 'var(--accent-main)' }}>{new Date(s.finalETA).toLocaleDateString()}</td>
-                  <td>
-                    <span style={{ color: s.delayInDays > 0 ? 'var(--warning)' : '#10B981' }}>
-                      {s.delayInDays} days
-                    </span>
-                  </td>
-                  <td>
-                    <input
-                      type="date"
-                      className="form-input"
-                      style={{ padding: '0.4rem', border: '1px solid var(--accent-main)' }}
-                      defaultValue={new Date(s.finalETA).toISOString().split('T')[0]}
-                      onChange={(e) => updateShipmentETA(s._id, e.target.value)}
-                      title="Set Explicit ETA"
-                    />
-                  </td>
-                </tr>
-              ))}
-              {shipments.length === 0 && (
-                <tr><td colSpan="6" style={{ textAlign: 'center', padding: '2rem' }}>No active shipments.</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-    </div>
-  )
-}
-
-{/* Low Stock Modal */ }
-{
-  showLowStockModal && (
-    <div className="modal-overlay" onClick={() => setShowLowStockModal(false)}>
-      <div className="modal-content" onClick={e => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2>
-            <span className="header-icon">⚠️</span>
-            Low Stock Products ({lowStockProducts.length})
-          </h2>
-          <button className="modal-close" onClick={() => setShowLowStockModal(false)}>×</button>
-        </div>
-
-        <div className="modal-body">
-          {lowStockProducts.length === 0 ? (
-            <div className="empty-state">
-              <p>No low stock products found.</p>
-            </div>
-          ) : (
-            <table className="product-table">
-              <thead>
-                <tr>
-                  <th>Product</th>
-                  <th>Category</th>
-                  <th>Current Stock</th>
-                  <th>Status</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {lowStockProducts.map(product => (
-                  <tr key={product._id}>
-=======
-                    {preOrders.map(po => (
-                    <tr key={po._id}>
-                      <td>{new Date(po.createdAt).toLocaleDateString()}</td>
-                      <td>{po.user?.name}</td>
-                      <td>{po.product?.name}</td>
-                      <td>{po.quantity}</td>
->>>>>>> main
-                      <td>
-                        <span className={`status-badge ${po.status.toLowerCase()}`}>
-                          {po.status}
-                        </span>
-                      </td>
-                      <td>
-                        <button
-                          className="action-btn edit-btn"
-                          onClick={() => updatePreOrderStatus(po._id, 'APPROVED')}
-                        >
-                          Approve
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
                   </tbody>
                 </table>
               </div>
-      </div>
-    </div>
-  )
-}
-
-{/* Shipments Tab */ }
-{
-  activeTab === 'shipments' && (
-    <div className="admin-grid" style={{ gridTemplateColumns: '1fr' }}>
-      <div className="admin-card">
-        <div className="card-header">
-          <h2><span className="header-icon">🚢</span> Active Shipments</h2>
-        </div>
-        <div className="product-table-container">
-          <table className="product-table">
-            <thead>
-              <tr>
-                <th>Batch ID</th>
-                <th>Origin</th>
-                <th>Destination</th>
-                <th>ETA</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {shipments.map(s => (
-                <tr key={s._id}>
-                  <td>{s.shipmentBatchId}</td>
-                  <td>{s.origin}</td>
-                  <td>{s.destination}</td>
-                  <td>{new Date(s.finalETA).toLocaleDateString()}</td>
-                  <td>{s.status}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-{/* Low Stock Modal */ }
-{
-  showLowStockModal && (
-    <div className="modal-overlay" onClick={() => setShowLowStockModal(false)}>
-      <div className="modal-content" onClick={e => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2>
-            <span className="header-icon">⚠️</span>
-            Low Stock Products ({lowStockProducts.length})
-          </h2>
-          <button className="modal-close" onClick={() => setShowLowStockModal(false)}>×</button>
-        </div>
-
-        <div className="modal-body">
-          {lowStockProducts.length === 0 ? (
-            <div className="empty-state">
-              <p>No low stock products found.</p>
             </div>
-          ) : (
-            <table className="product-table">
-              <thead>
-                <tr>
-                  <th>Product</th>
-                  <th>Category</th>
-                  <th>Current Stock</th>
-                  <th>Status</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {lowStockProducts.map(product => (
-                  <tr key={product._id}>
-                    <td>
-                      <div className="product-info-cell">
-                        <span className="product-name">{product.name}</span>
-                      </div>
-                    </td>
-                    <td>{product.category || 'Uncategorized'}</td>
-                    <td>
-                      <span style={{
-                        color: product.stock === 0 ? '#EF4444' :
-                          product.stock < 5 ? '#F59E0B' : '#10B981',
-                        fontWeight: 'bold'
-                      }}>
-                        {product.stock}
-                      </span>
-                    </td>
-                    <td>
-                      <span className={`status-badge ${product.stock === 0 ? 'out-of-stock' : 'low-stock'}`}>
-                        Low Stock
-                      </span>
-                    </td>
-                    <td>
-                      <button
-                        className="action-btn edit-btn"
-                        onClick={() => {
-                          setShowLowStockModal(false);
-                          startEditing(product);
-                          setTimeout(() => {
-                            document.querySelector(`[data-product-id="${product._id}"]`)?.scrollIntoView({
-                              behavior: 'smooth',
-                              block: 'center'
-                            });
-                          }, 100);
-                        }}
-                      >
-                        Update Stock
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
 
-        <div className="modal-footer">
-          <button className="submit-btn" onClick={() => setShowLowStockModal(false)}>
-            Close
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-{/* Out of Stock Modal */ }
-{
-  showOutOfStockModal && (
-    <div className="modal-overlay" onClick={() => setShowOutOfStockModal(false)}>
-      <div className="modal-content" onClick={e => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2>
-            <span className="header-icon">❌</span>
-            Out of Stock Products ({outOfStockProducts.length})
-          </h2>
-          <button className="modal-close" onClick={() => setShowOutOfStockModal(false)}>×</button>
-        </div>
-
-        <div className="modal-body">
-          {outOfStockProducts.length === 0 ? (
-            <div className="empty-state">
-              <p>No out of stock products found.</p>
-            </div>
-          ) : (
-            <table className="product-table">
-              <thead>
-                <tr>
-                  <th>Product</th>
-                  <th>Category</th>
-                  <th>Last Stock</th>
-                  <th>Status</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {outOfStockProducts.map(product => (
-                  <tr key={product._id}>
-                    <td>
-                      <div className="product-info-cell">
-                        <span className="product-name">{product.name}</span>
-                      </div>
-                    </td>
-                    <td>{product.category || 'Uncategorized'}</td>
-                    <td>
-                      <span style={{ color: '#EF4444', fontWeight: 'bold' }}>
-                        0
-                      </span>
-                    </td>
-                    <td>
-                      <span className="status-badge out-of-stock">
-                        Out of Stock
-                      </span>
-                    </td>
-                    <td>
-                      <button
-                        className="action-btn edit-btn"
-                        onClick={() => {
-                          setShowOutOfStockModal(false);
-                          startEditing(product);
-                          setTimeout(() => {
-                            document.querySelector(`[data-product-id="${product._id}"]`)?.scrollIntoView({
-                              behavior: 'smooth',
-                              block: 'center'
-                            });
-                          }, 100);
-                        }}
-                      >
-                        Restock
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-
-        <div className="modal-footer">
-          <button className="submit-btn" onClick={() => setShowOutOfStockModal(false)}>
-            Close
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-{
-  activeTab === 'categories' && (
-    <div className="admin-grid" style={{ gridTemplateColumns: '1fr 2fr' }}>
-      {/* Add Category Form */}
-      <div className="admin-card form-card">
-        <div className="card-header">
-          <h2><span className="header-icon">🏷️</span> New Category</h2>
-          <p className="card-description">Create a new product category</p>
-        </div>
-        <form onSubmit={handleCreateCategory} className="admin-form">
-          <div className="form-group">
-            <label>Category Name (Must be unique)</label>
-            <input type="text" name="name" className="form-input" required value={categoryForm.name} onChange={handleCategoryChange} placeholder="e.g. Smart Home" />
           </div>
-          <div className="form-group">
-            <label>Description</label>
-            <input type="text" name="description" className="form-input" value={categoryForm.description} onChange={handleCategoryChange} />
-          </div>
-          <div className="form-group">
-            <label>Cover Image (Required)</label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleCategoryImageUpload}
-              className="form-input file-input"
-              required
-            />
-            {categoryForm.image && (
-              <div className="image-preview" style={{ marginTop: '1rem', borderRadius: '0.5rem', overflow: 'hidden' }}>
-                <img src={categoryForm.image} alt="Preview" style={{ width: '100%', maxHeight: '150px', objectFit: 'cover' }} />
+        )
+      }
+
+
+      {/* Low Stock Modal */}
+      {
+        showLowStockModal && (
+          <div className="modal-overlay" onClick={() => setShowLowStockModal(false)}>
+            <div className="modal-content" onClick={e => e.stopPropagation()}>
+              <div className="modal-header">
+                <h2>
+                  <span className="header-icon">⚠️</span>
+                  Low Stock Products ({lowStockProducts.length})
+                </h2>
+                <button className="modal-close" onClick={() => setShowLowStockModal(false)}>×</button>
               </div>
-            )}
-          </div>
-          <button type="submit" className="submit-btn" style={{ marginTop: '1rem' }}>
-            Create Category
-          </button>
-        </form>
-      </div>
 
-      {/* Categories List */}
-      <div className="admin-card">
-        <div className="card-header">
-          <h2><span className="header-icon">📋</span> Active Categories</h2>
-        </div>
-        <div className="product-table-container">
-          <table className="product-table">
-            <thead>
-              <tr>
-                <th>Cover</th>
-                <th>Name</th>
-                <th>Description</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {categories.map(c => (
-                <tr key={c._id}>
-                  <td>
-                    <img src={c.image} alt={c.name} style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '0.25rem' }} />
-                  </td>
-                  <td style={{ fontWeight: 'bold' }}>{c.name}</td>
-                  <td>{c.description || '-'}</td>
-                  <td>
-                    <button
-                      className="action-btn danger"
-                      onClick={() => handleDeleteCategory(c._id)}
-                      title="Delete Category"
-                    >
-                      🗑️
-                    </button>
-                  </td>
-                </tr>
-              ))}
-              {categories.length === 0 && (
-                <tr><td colSpan="4" style={{ textAlign: 'center', padding: '2rem' }}>No categories created yet.</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+              <div className="modal-body">
+                {lowStockProducts.length === 0 ? (
+                  <div className="empty-state">
+                    <p>No low stock products found.</p>
+                  </div>
+                ) : (
+                  <table className="product-table">
+                    <thead>
+                      <tr>
+                        <th>Product</th>
+                        <th>Category</th>
+                        <th>Current Stock</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {lowStockProducts.map(product => (
+                        <tr key={product._id}>
+                          <td>
+                            <div className="product-info-cell">
+                              <span className="product-name">{product.name}</span>
+                            </div>
+                          </td>
+                          <td>{product.category || 'Uncategorized'}</td>
+                          <td>
+                            <span style={{
+                              color: product.stock === 0 ? '#EF4444' :
+                                product.stock < 5 ? '#F59E0B' : '#10B981',
+                              fontWeight: 'bold'
+                            }}>
+                              {product.stock}
+                            </span>
+                          </td>
+                          <td>
+                            <span className={`status-badge ${product.stock === 0 ? 'out-of-stock' : 'low-stock'}`}>
+                              Low Stock
+                            </span>
+                          </td>
+                          <td>
+                            <button
+                              className="action-btn edit-btn"
+                              onClick={() => {
+                                setShowLowStockModal(false);
+                                startEditing(product);
+                                setTimeout(() => {
+                                  document.querySelector(`[data-product-id="${product._id}"]`)?.scrollIntoView({
+                                    behavior: 'smooth',
+                                    block: 'center'
+                                  });
+                                }, 100);
+                              }}
+                            >
+                              Update Stock
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+
+              <div className="modal-footer">
+                <button className="submit-btn" onClick={() => setShowLowStockModal(false)}>
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      }
+
+      {/* Out of Stock Modal */}
+      {
+        showOutOfStockModal && (
+          <div className="modal-overlay" onClick={() => setShowOutOfStockModal(false)}>
+            <div className="modal-content" onClick={e => e.stopPropagation()}>
+              <div className="modal-header">
+                <h2>
+                  <span className="header-icon">❌</span>
+                  Out of Stock Products ({outOfStockProducts.length})
+                </h2>
+                <button className="modal-close" onClick={() => setShowOutOfStockModal(false)}>×</button>
+              </div>
+
+              <div className="modal-body">
+                {outOfStockProducts.length === 0 ? (
+                  <div className="empty-state">
+                    <p>No out of stock products found.</p>
+                  </div>
+                ) : (
+                  <table className="product-table">
+                    <thead>
+                      <tr>
+                        <th>Product</th>
+                        <th>Category</th>
+                        <th>Last Stock</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {outOfStockProducts.map(product => (
+                        <tr key={product._id}>
+                          <td>
+                            <div className="product-info-cell">
+                              <span className="product-name">{product.name}</span>
+                            </div>
+                          </td>
+                          <td>{product.category || 'Uncategorized'}</td>
+                          <td>
+                            <span style={{ color: '#EF4444', fontWeight: 'bold' }}>
+                              0
+                            </span>
+                          </td>
+                          <td>
+                            <span className="status-badge out-of-stock">
+                              Out of Stock
+                            </span>
+                          </td>
+                          <td>
+                            <button
+                              className="action-btn edit-btn"
+                              onClick={() => {
+                                setShowOutOfStockModal(false);
+                                startEditing(product);
+                                setTimeout(() => {
+                                  document.querySelector(`[data-product-id="${product._id}"]`)?.scrollIntoView({
+                                    behavior: 'smooth',
+                                    block: 'center'
+                                  });
+                                }, 100);
+                              }}
+                            >
+                              Restock
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+
+              <div className="modal-footer">
+                <button className="submit-btn" onClick={() => setShowOutOfStockModal(false)}>
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      }
+
+      {
+        activeTab === 'categories' && (
+          <div className="admin-grid" style={{ gridTemplateColumns: '1fr 2fr' }}>
+            {/* Add Category Form */}
+            <div className="admin-card form-card">
+              <div className="card-header">
+                <h2><span className="header-icon">🏷️</span> New Category</h2>
+                <p className="card-description">Create a new product category</p>
+              </div>
+              <form onSubmit={handleCreateCategory} className="admin-form">
+                <div className="form-group">
+                  <label>Category Name (Must be unique)</label>
+                  <input type="text" name="name" className="form-input" required value={categoryForm.name} onChange={handleCategoryChange} placeholder="e.g. Smart Home" />
+                </div>
+                <div className="form-group">
+                  <label>Description</label>
+                  <input type="text" name="description" className="form-input" value={categoryForm.description} onChange={handleCategoryChange} />
+                </div>
+                <div className="form-group">
+                  <label>Cover Image (Required)</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleCategoryImageUpload}
+                    className="form-input file-input"
+                    required
+                  />
+                  {categoryForm.image && (
+                    <div className="image-preview" style={{ marginTop: '1rem', borderRadius: '0.5rem', overflow: 'hidden' }}>
+                      <img src={categoryForm.image} alt="Preview" style={{ width: '100%', maxHeight: '150px', objectFit: 'cover' }} />
+                    </div>
+                  )}
+                </div>
+                <button type="submit" className="submit-btn" style={{ marginTop: '1rem' }}>
+                  Create Category
+                </button>
+              </form>
+            </div>
+
+            {/* Categories List */}
+            <div className="admin-card">
+              <div className="card-header">
+                <h2><span className="header-icon">📋</span> Active Categories</h2>
+              </div>
+              <div className="product-table-container">
+                <table className="product-table">
+                  <thead>
+                    <tr>
+                      <th>Cover</th>
+                      <th>Name</th>
+                      <th>Description</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {categories.map(c => (
+                      <tr key={c._id}>
+                        <td>
+                          <img src={c.image} alt={c.name} style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '0.25rem' }} />
+                        </td>
+                        <td style={{ fontWeight: 'bold' }}>{c.name}</td>
+                        <td>{c.description || '-'}</td>
+                        <td>
+                          <button
+                            className="action-btn danger"
+                            onClick={() => handleDeleteCategory(c._id)}
+                            title="Delete Category"
+                          >
+                            🗑️
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                    {categories.length === 0 && (
+                      <tr><td colSpan="4" style={{ textAlign: 'center', padding: '2rem' }}>No categories created yet.</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )
+      }
     </div>
-  )
-}
-    </div >
   );
 }
 
