@@ -326,6 +326,27 @@ function Admin() {
     }
   };
 
+  const updateShipmentStatus = async (id, newStatus) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/shipments/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+      if (res.ok) {
+        fetchShipments();
+        fetchPreOrders();
+        showNotification("Shipment Status Updated!", "success");
+      }
+    } catch (err) {
+      console.error(err);
+      showNotification("Failed to update status", "error");
+    }
+  };
+
   const handleStockUpdate = async (productId, newStock) => {
     try {
       const response = await fetch(`http://localhost:5000/api/products/${productId}/stock`, {
@@ -1067,7 +1088,20 @@ function Admin() {
                       <tr key={s._id}>
                         <td style={{ fontWeight: 'bold' }}>{s.shipmentBatchId}</td>
                         <td>{s.origin} ➝ {s.destination}</td>
-                        <td>{s.status}</td>
+                        <td>
+                          <select
+                            value={s.status}
+                            onChange={(e) => updateShipmentStatus(s._id, e.target.value)}
+                            className="form-input"
+                            style={{ padding: '0.4rem', border: '1px solid var(--accent-main)', minWidth: '120px' }}
+                          >
+                            <option value="PROCESSING">PROCESSING</option>
+                            <option value="SHIPPED">SHIPPED</option>
+                            <option value="CUSTOMS">CUSTOMS</option>
+                            <option value="LOCAL_HUB">LOCAL_HUB</option>
+                            <option value="DELIVERED">DELIVERED</option>
+                          </select>
+                        </td>
                         <td style={{ color: 'var(--accent-main)' }}>{new Date(s.finalETA).toLocaleDateString()}</td>
                         <td>
                           <span style={{ color: s.delayInDays > 0 ? 'var(--warning)' : '#10B981' }}>

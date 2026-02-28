@@ -130,11 +130,41 @@ function MyPreOrders() {
         }, 3000);
     };
 
-    const getStatusProgress = (status) => {
-        const states = ["PENDING", "APPROVED", "SHIPPED", "DELIVERED"];
-        let idx = states.indexOf(status);
-        if (status === "CANCELLED") return -1;
+    const getStatusProgress = (po) => {
+        // Base pre-order statuses alongside shipment statuses
+        const states = [
+            "PENDING",
+            "APPROVED",
+            "PROCESSING",
+            "SHIPPED",
+            "CUSTOMS",
+            "LOCAL_HUB",
+            "DELIVERED"
+        ];
+
+        let currentStatus = po.status;
+
+        // If the pre-order is tied to a shipment, the shipment dictates the exact progress step
+        if (po.shipment && po.shipment.status && po.status !== "CANCELLED" && po.status !== "DELIVERED") {
+            currentStatus = po.shipment.status;
+        }
+
+        let idx = states.indexOf(currentStatus);
+
+        // Fallback for unexpected statuses
+        if (idx === -1) {
+            if (currentStatus === "CANCELLED") return -1;
+            idx = 0;
+        }
+
         return Math.max(0, (idx / (states.length - 1)) * 100);
+    };
+
+    const getDetailedStatus = (po) => {
+        if (po.shipment && po.shipment.status && po.status !== "CANCELLED" && po.status !== "DELIVERED") {
+            return po.shipment.status;
+        }
+        return po.status;
     };
 
     const getEstimatedArrivalText = (preOrder) => {
@@ -203,14 +233,17 @@ function MyPreOrders() {
                                 <div className="po-progress-section">
                                     <div className="progress-bar-container">
                                         <div
-                                            className="progress-bar-fill"
-                                            style={{ width: `${getStatusProgress(po.status)}%` }}
+                                            className={`progress-bar-fill ${getDetailedStatus(po).toLowerCase()}`}
+                                            style={{ width: `${getStatusProgress(po)}%` }}
                                         ></div>
                                     </div>
                                     <div className="progress-labels">
                                         <span>Pending</span>
                                         <span>Approved</span>
+                                        <span>Processing</span>
                                         <span>Shipped</span>
+                                        <span>Customs</span>
+                                        <span>Local</span>
                                         <span>Delivered</span>
                                     </div>
                                 </div>
