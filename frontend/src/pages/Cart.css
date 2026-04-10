@@ -275,3 +275,323 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* Feature 9: Progress Bars */
+.cart-progress-container {
+    display: flex; flex-direction: column; gap: 1.2rem;
+    margin-bottom: 1.5rem; background: rgba(15, 23, 42, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.05); padding: 1.2rem; border-radius: 0.75rem;
+}
+.progress-item { display: flex; flex-direction: column; gap: 0.5rem; }
+.progress-header { display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600; color: #94a3b8; }
+.progress-header .unlocked { color: #10B981; text-shadow: 0 0 10px rgba(16, 185, 129, 0.5); animation: pulse 2s infinite; }
+@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+.progress-track { width: 100%; height: 8px; background: rgba(255, 255, 255, 0.1); border-radius: 4px; overflow: hidden; position: relative; box-shadow: inset 0 1px 3px rgba(0,0,0,0.3); }
+.progress-fill { height: 100%; border-radius: 4px; transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1); }
+.progress-fill.shipping { background: linear-gradient(90deg, #3b82f6, #60a5fa); box-shadow: 0 0 10px rgba(59, 130, 246, 0.5); }
+.progress-fill.discount { background: linear-gradient(90deg, #10b981, #34d399); box-shadow: 0 0 10px rgba(16, 185, 129, 0.5); }
+
+/* Promo Code UI */
+.promo-code-container { margin-bottom: 1.5rem; }
+.promo-code-container label { display: block; font-size: 0.85rem; color: #94a3b8; margin-bottom: 0.5rem; font-weight: 600; }
+.promo-input-group { display: flex; gap: 0.5rem; }
+.promo-input { flex: 1; background: rgba(15, 23, 42, 0.5); border: 1px solid rgba(255,255,255,0.1); border-radius: 0.5rem; padding: 0.75rem; color: #f8fafc; outline: none; transition: all 0.2s; }
+.promo-input:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2); }
+.promo-btn { background: #3b82f6; color: white; border: none; padding: 0 1.2rem; border-radius: 0.5rem; cursor: pointer; font-weight: 600; transition: all 0.2s; }
+.promo-btn:hover { background: #2563eb; }
+.promo-btn.success { background: #10B981; }
+
+.shake-animation { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; border-color: #ef4444; }
+@keyframes shake { 10%, 90% { transform: translate3d(-1px, 0, 0); } 20%, 80% { transform: translate3d(2px, 0, 0); } 30%, 50%, 70% { transform: translate3d(-4px, 0, 0); } 40%, 60% { transform: translate3d(4px, 0, 0); } }
+.promo-applied-text { display: block; margin-top: 0.5rem; color: #10B981; font-size: 0.8rem; animation: fadein 0.3s; }
+@keyframes fadein { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Undo Toast */
+.undo-toast { display: flex; align-items: center; justify-content: space-between; background: rgba(30, 41, 59, 0.95); border-left: 4px solid #3b82f6; padding: 1rem 1.5rem; border-radius: 0.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.5); margin-top: 1rem; opacity: 0; visibility: hidden; transform: translateY(10px); transition: all 0.3s; }
+.undo-toast.active { opacity: 1; visibility: visible; transform: translateY(0); }
+.undo-toast span { color: #f8fafc; font-weight: 500; }
+.undo-btn { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: none; padding: 0.4rem 1rem; border-radius: 2rem; cursor: pointer; font-weight: 600; transition: all 0.2s; }
+.undo-btn:hover { background: rgba(59, 130, 246, 0.4); color: white; }
+
+/* Checkout Guard Overlay */
+.checkout-guard-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); z-index: 1000; display: flex; align-items: center; justify-content: center; animation: fadeInGuard 0.3s ease-out; }
+@keyframes fadeInGuard { from { opacity: 0; backdrop-filter: blur(0px); } to { opacity: 1; backdrop-filter: blur(8px); } }
+.checkout-spinner-container { background: rgba(30, 41, 59, 0.9); padding: 3rem; border-radius: 1rem; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 40px rgba(0,0,0,0.5); text-align: center; }
+.checkout-spinner-container h3 { color: #f8fafc; margin: 1.5rem 0 0.5rem; font-size: 1.25rem; }
+.checkout-spinner-container p { color: #94a3b8; font-size: 0.9rem; }
+.premium-spinner { width: 50px; height: 50px; border: 3px solid rgba(59, 130, 246, 0.3); border-top-color: #3b82f6; border-radius: 50%; margin: 0 auto; animation: spin 1s infinite linear; }
+.blurred { filter: blur(3px) grayscale(0.5); transition: all 0.3s ease-out; pointer-events: none; }
+
+.loading-state { text-align: center; padding: 5rem 0; min-height: 50vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+
+/* Address Management (Feature 15) */
+.address-section {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: rgba(15, 23, 42, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 1rem;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.2rem;
+}
+
+.section-header h3 {
+    font-size: 1.1rem;
+    color: #f8fafc;
+}
+
+.text-btn {
+    background: none;
+    border: none;
+    color: #3b82f6;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: color 0.2s;
+}
+
+.text-btn:hover { color: #60a5fa; }
+
+.address-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1rem;
+}
+
+.address-card {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    background: rgba(30, 41, 59, 0.5);
+    border: 2px solid rgba(255, 255, 255, 0.05);
+    border-radius: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+}
+
+.address-card:hover {
+    background: rgba(30, 41, 59, 0.8);
+    border-color: rgba(59, 130, 246, 0.3);
+}
+
+.address-card.selected {
+    border-color: #3b82f6;
+    background: rgba(59, 130, 246, 0.1);
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);
+}
+
+.addr-check {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    color: white;
+    flex-shrink: 0;
+}
+
+.selected .addr-check {
+    background: #3b82f6;
+    border-color: #3b82f6;
+}
+
+.addr-info strong {
+    display: block;
+    color: #f8fafc;
+    font-size: 0.95rem;
+    margin-bottom: 0.2rem;
+}
+
+.addr-info p {
+    color: #94a3b8;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    margin-bottom: 0.2rem;
+}
+
+.addr-info span {
+    color: #64748b;
+    font-size: 0.8rem;
+}
+
+.address-form {
+    padding: 1.5rem;
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.full-width { grid-column: span 2; }
+
+.address-form input {
+    background: rgba(15, 23, 42, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    color: #f8fafc;
+    font-size: 0.9rem;
+}
+
+.save-addr-btn {
+    margin-top: 1rem;
+    width: 100%;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    padding: 0.8rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.hint-text {
+    color: #64748b;
+    font-size: 0.85rem;
+}
+
+.hint-text.center { text-align: center; }
+
+.pre-order-tag {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b;
+    border: 1px solid rgba(245, 158, 11, 0.2);
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    margin-top: 0.5rem;
+}
+
+/* Elite Address Chips (Feature 15 Upgrade) */
+.address-chip-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1.25rem;
+    margin-top: 1.5rem;
+}
+
+.address-chip {
+    background: rgba(30, 41, 59, 0.4);
+    border: 1.5px solid rgba(255, 255, 255, 0.05);
+    border-radius: 1.25rem;
+    padding: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    position: relative;
+    overflow: hidden;
+}
+
+.address-chip:hover {
+    background: rgba(30, 41, 59, 0.6);
+    border-color: rgba(59, 130, 246, 0.4);
+    transform: translateY(-5px) scale(1.02);
+}
+
+.address-chip.active {
+    background: rgba(59, 130, 246, 0.1);
+    border-color: #3b82f6;
+    box-shadow: 0 10px 25px rgba(59, 130, 246, 0.2);
+}
+
+.chip-icon {
+    font-size: 1.8rem;
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.1));
+}
+
+.chip-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.chip-label {
+    font-size: 0.9rem;
+    font-weight: 800;
+    color: #f8fafc;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.chip-street {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 120px;
+}
+
+.chip-check {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #3b82f6;
+    color: white;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: bold;
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+    animation: bounceIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+@keyframes bounceIn {
+    from { transform: scale(0); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.add-address-pill {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(59, 130, 246, 0.05));
+    border: 1.5px dashed rgba(59, 130, 246, 0.4);
+    color: #60a5fa;
+    padding: 0.5rem 1.25rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.add-address-pill:hover {
+    background: rgba(59, 130, 246, 0.2);
+    border-style: solid;
+    border-color: #3b82f6;
+    transform: scale(1.05);
+}
+
+.address-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}

@@ -259,3 +259,39 @@ export const deletePreOrder = async (req, res) => {
         res.status(500).json({ error: "Failed to delete pre-order" });
     }
 };
+
+// @desc    Add Courier Integration Log to Pre-Order
+// @route   POST /api/preorders/:id/courier
+// @access  Private/Admin
+export const addPreOrderCourierLog = async (req, res) => {
+    try {
+        const { courierName, trackingId, note } = req.body;
+        const preOrder = await PreOrder.findById(req.params.id);
+        if (!preOrder) return res.status(404).json({ error: "Pre-order not found" });
+
+        preOrder.courierLogs.push({
+            courierName,
+            trackingId,
+            status: "Shipped via Courier",
+            note,
+            timestamp: Date.now()
+        });
+        
+        // Update status to SHIPPED if it isn't already or if it was still in customs/local hub
+        // Actually for pre-orders status SHIPPED might mean it's on local delivery
+        if (preOrder.status !== "SHIPPED") {
+            preOrder.status = "SHIPPED";
+            preOrder.statusHistory.push({
+                status: "SHIPPED",
+                timestamp: Date.now(),
+                note: `Handed over to local courier: ${courierName}`
+            });
+        }
+
+        await preOrder.save();
+        res.json(preOrder);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Server error" });
+    }
+};

@@ -2,6 +2,14 @@ import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 
 const userSchema = new mongoose.Schema({
+  addresses: [{
+    label: { type: String, default: "Home" },
+    street: { type: String, required: true },
+    city: { type: String, required: true },
+    postalCode: { type: String, required: true },
+    phone: { type: String, required: true },
+    isDefault: { type: Boolean, default: false }
+  }],
   name: {
     type: String,
     required: [true, "Name is required"],

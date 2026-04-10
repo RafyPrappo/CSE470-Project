@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
+import { memo } from "react";
 import "./Footer.css";
 
-function Footer() {
+const Footer = memo(() => {
   const currentYear = new Date().getFullYear();
   
   return (
@@ -93,6 +94,6 @@ function Footer() {
       </div>
     </footer>
   );
-}
+});
 
 export default Footer;

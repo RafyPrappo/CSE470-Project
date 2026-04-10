@@ -7,7 +7,8 @@ import {
     updatePreOrderStatus,
     updatePreOrderQuantity,
     cancelPreOrder,
-    deletePreOrder
+    deletePreOrder,
+    addPreOrderCourierLog
 } from "../controllers/preOrderController.js";
 
 const router = express.Router();
@@ -22,5 +23,6 @@ router.delete("/:id/remove", protect, deletePreOrder); // removes cancelled
 // Admin routes
 router.get("/", protect, adminOnly, getAllPreOrders);
 router.put("/:id", protect, adminOnly, updatePreOrderStatus);
+router.post("/:id/courier", protect, adminOnly, addPreOrderCourierLog);
 
 export default router;

@@ -1,10 +1,10 @@
 import { Link, useLocation } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 import "./Navbar.css";
 
-function Navbar() {
+const Navbar = memo(() => {
   const location = useLocation();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -30,7 +30,10 @@ function Navbar() {
     { path: "/", label: "Home" },
     { path: "/categories", label: "Categories" },
     { path: "/products", label: "All Products" },
-    ...(isAuthenticated && !isAdmin ? [{ path: "/my-preorders", label: "My Pre-Orders" }] : []),
+    ...(isAuthenticated && !isAdmin ? [
+        { path: "/my-orders", label: "My Orders" },
+        { path: "/my-preorders", label: "My Pre-Orders" }
+    ] : []),
     ...(isAdmin ? [{ path: "/admin", label: "Admin Dashboard" }] : []),
   ];
 
@@ -143,6 +146,6 @@ function Navbar() {
       )}
     </nav>
   );
-}
+});
 
 export default Navbar;
