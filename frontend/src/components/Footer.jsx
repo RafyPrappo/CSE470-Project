@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { memo } from "react";
-import { Zap, Facebook, Instagram, Twitter, Linkedin, MapPin, Phone, Mail, Clock } from "lucide-react";
+import { Zap, MapPin, Phone, Mail, Clock } from "lucide-react";
 import "./Footer.css";
 
 const Footer = memo(() => {
@@ -26,10 +26,10 @@ const Footer = memo(() => {
               Bridging the gap between Chinese imports and Bangladeshi customers with style.
             </p>
             <div className="social-links">
-              <a href="#" className="social-link" aria-label="Facebook"><Facebook size={20} /></a>
-              <a href="#" className="social-link" aria-label="Instagram"><Instagram size={20} /></a>
-              <a href="#" className="social-link" aria-label="Twitter"><Twitter size={20} /></a>
-              <a href="#" className="social-link" aria-label="LinkedIn"><Linkedin size={20} /></a>
+              <a href="#" className="social-link" aria-label="Facebook">📘</a>
+              <a href="#" className="social-link" aria-label="Instagram">📷</a>
+              <a href="#" className="social-link" aria-label="Twitter">🐦</a>
+              <a href="#" className="social-link" aria-label="LinkedIn">💼</a>
             </div>
           </div>
 
