@@ -1,4 +1,5 @@
 import React, { memo } from 'react';
+import { Plus, Camera, Sparkles, BarChart3, Package, CheckCircle, AlertTriangle, XCircle, Search, Edit, Trash2 } from 'lucide-react';
 
 const ProductManager = memo(({
   form,
@@ -33,7 +34,7 @@ const ProductManager = memo(({
       <div className="admin-card form-card">
         <div className="card-header">
           <h2>
-            <span className="header-icon">➕</span>
+            <span className="header-icon" style={{marginRight: '8px'}}><Plus size={24}/></span>
             Add New Product
           </h2>
           <p className="card-description">Fill in the product details below</p>
@@ -145,7 +146,7 @@ const ProductManager = memo(({
                 id="product-image-upload"
               />
               <label htmlFor="product-image-upload" className="image-upload-button">
-                <span className="button-icon">📸</span>
+                <span className="button-icon" style={{marginRight: '8px'}}><Camera size={18}/></span>
                 Choose Image
               </label>
               {form.image && (
@@ -196,7 +197,7 @@ const ProductManager = memo(({
               </>
             ) : (
               <>
-                <span>✨</span>
+                <span style={{marginRight: '8px'}}><Sparkles size={18}/></span>
                 Add Product
               </>
             )}
@@ -207,14 +208,14 @@ const ProductManager = memo(({
       <div className="admin-card stats-card">
         <div className="card-header">
           <h2>
-            <span className="header-icon">📊</span>
+            <span className="header-icon" style={{marginRight: '8px'}}><BarChart3 size={24}/></span>
             Overview
           </h2>
         </div>
 
         <div className="stats-grid">
           <div className="stat-box">
-            <div className="stat-icon">📦</div>
+            <div className="stat-icon"><Package size={24}/></div>
             <div className="stat-details">
               <span className="stat-value">{products.length}</span>
               <span className="stat-label">Total</span>
@@ -222,7 +223,7 @@ const ProductManager = memo(({
           </div>
 
           <div className="stat-box">
-            <div className="stat-icon">✅</div>
+            <div className="stat-icon"><CheckCircle size={24}/></div>
             <div className="stat-details">
               <span className="stat-value">
                 {products.filter(p => p.stock >= 5).length}
@@ -236,7 +237,7 @@ const ProductManager = memo(({
             onClick={() => setShowLowStockModal(true)}
             title="Click to view low stock products"
           >
-            <div className="stat-icon">⚠️</div>
+            <div className="stat-icon"><AlertTriangle size={24}/></div>
             <div className="stat-details">
               <span className="stat-value">{lowStockProducts.length}</span>
               <span className="stat-label">Low Stock</span>
@@ -248,7 +249,7 @@ const ProductManager = memo(({
             onClick={() => setShowOutOfStockModal(true)}
             title="Click to view out of stock products"
           >
-            <div className="stat-icon">❌</div>
+            <div className="stat-icon"><XCircle size={24}/></div>
             <div className="stat-details">
               <span className="stat-value">{outOfStockProducts.length}</span>
               <span className="stat-label">Out of Stock</span>
@@ -261,7 +262,7 @@ const ProductManager = memo(({
         <div className="product-list-header">
           <span className="product-count-badge">{products.length} items</span>
           <div className="search-box">
-            <span className="search-icon">🔍</span>
+            <span className="search-icon"><Search size={18}/></span>
             <input
               type="text"
               placeholder="Search products..."
@@ -273,7 +274,7 @@ const ProductManager = memo(({
 
         {filteredProducts.length === 0 ? (
           <div className="empty-state">
-            <div className="empty-state-icon">📦</div>
+            <div className="empty-state-icon" style={{color: '#3b82f6', marginBottom: '1rem'}}><Package size={48}/></div>
             <h3>No products found</h3>
             <p>Try adjusting your search or add new products</p>
           </div>
@@ -399,7 +400,7 @@ const ProductManager = memo(({
                                 className="action-btn edit-btn"
                                 title="Edit stock"
                               >
-                                <span className="action-icon">✎</span>
+                                <span className="action-icon" style={{marginRight: '6px'}}><Edit size={16}/></span>
                                 <span className="action-text">Edit</span>
                               </button>
                               <button
@@ -407,7 +408,7 @@ const ProductManager = memo(({
                                 className="action-btn delete-btn"
                                 title="Delete product"
                               >
-                                <span className="action-icon">🗑️</span>
+                                <span className="action-icon" style={{marginRight: '6px'}}><Trash2 size={16}/></span>
                                 <span className="action-text">Delete</span>
                               </button>
                             </>

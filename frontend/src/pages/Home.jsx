@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import { Zap, Package, BarChart3, Key, Rocket, Banknote, Palette } from "lucide-react";
 import "./Home.css";
 
 function Home() {
@@ -71,7 +72,7 @@ function Home() {
             {isAdmin && (
               <Link to="/admin" className="cta-secondary">
                 <span>Admin Dashboard</span>
-                <span className="cta-icon">⚡</span>
+                <span className="cta-icon"><Zap size={16} /></span>
               </Link>
             )}
           </div>
@@ -114,42 +115,42 @@ function Home() {
 
         <div className="features-grid">
           <div className="feature-card">
-            <div className="feature-icon">📦</div>
+            <div className="feature-icon"><Package size={48} /></div>
             <h3>Product Management</h3>
             <p>Keep track of all items with clean listings and real-time stock updates.</p>
             <div className="feature-hover-effect" />
           </div>
 
           <div className="feature-card">
-            <div className="feature-icon">📊</div>
+            <div className="feature-icon"><BarChart3 size={48} /></div>
             <h3>Analytics Ready</h3>
             <p>Prepare for profit tracking and sales insights with detailed analytics.</p>
             <div className="feature-hover-effect" />
           </div>
 
           <div className="feature-card">
-            <div className="feature-icon">🔑</div>
+            <div className="feature-icon"><Key size={48} /></div>
             <h3>Admin Control</h3>
             <p>Securely add, edit, and manage your inventory with powerful tools.</p>
             <div className="feature-hover-effect" />
           </div>
 
           <div className="feature-card">
-            <div className="feature-icon">🚀</div>
+            <div className="feature-icon"><Rocket size={48} /></div>
             <h3>Fast Delivery</h3>
             <p>Track orders from China to Bangladesh with real-time updates.</p>
             <div className="feature-hover-effect" />
           </div>
 
           <div className="feature-card">
-            <div className="feature-icon">💰</div>
+            <div className="feature-icon"><Banknote size={48} /></div>
             <h3>Profit Calculator</h3>
             <p>Automatically calculate margins from import to retail price.</p>
             <div className="feature-hover-effect" />
           </div>
 
           <div className="feature-card">
-            <div className="feature-icon">🎨</div>
+            <div className="feature-icon"><Palette size={48} /></div>
             <h3>Premium Design</h3>
             <p>Experience a beautiful, intuitive interface that's a pleasure to use.</p>
             <div className="feature-hover-effect" />

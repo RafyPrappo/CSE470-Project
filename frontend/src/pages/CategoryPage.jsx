@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
+import { Search, Tag, Package, Lock, AlertTriangle } from "lucide-react";
 import ProductCard from "../components/ProductCard";
 import "./Products.css"; // We'll reuse the Products styling for the grid
 
@@ -209,7 +210,7 @@ function CategoryPage() {
     const LoginPromptModal = () => (
         <div className="modal-overlay" onClick={() => setShowLoginPrompt(false)}>
             <div className="modal-content" onClick={e => e.stopPropagation()}>
-                <div className="modal-icon">🔒</div>
+                <div className="modal-icon"><Lock size={48} /></div>
                 <h3>Login Required</h3>
                 <p>Please login or create an account to {promptProduct?.quantity > 0 ? 'add items to cart' : 'get notified'}</p>
                 <div className="modal-actions">
@@ -233,7 +234,7 @@ function CategoryPage() {
     if (error) {
         return (
             <div className="products-error">
-                <div className="error-icon">⚠️</div>
+                <div className="error-icon"><AlertTriangle size={64} /></div>
                 <h3>Oops!</h3>
                 <p>{error}</p>
                 <button className="btn-primary" onClick={() => navigate('/products')}>Back to All Products</button>
@@ -294,7 +295,7 @@ function CategoryPage() {
                 <div className="filters-bar" style={{ marginBottom: '2rem' }}>
                     <div className="search-box" style={{ visibility: 'hidden' }}>
                         {/* Holding space for flexbox alignment */}
-                        <span className="search-icon">🔍</span>
+                        <span className="search-icon"><Search size={18} /></span>
                         <input type="text" placeholder="Search..." />
                     </div>
 
@@ -316,7 +317,7 @@ function CategoryPage() {
 
                 {sortedProducts.length === 0 ? (
                     <div className="no-products">
-                        <div className="no-products-icon">📦</div>
+                        <div className="no-products-icon"><Package size={64} /></div>
                         <h3>No Products Found</h3>
                         <p>We don't have any items in the {categoryName} category yet.</p>
                     </div>

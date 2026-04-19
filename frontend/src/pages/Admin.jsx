@@ -11,7 +11,13 @@ import {
   Layers, 
   Clock,
   ChevronRight,
-  ShieldCheck
+  ShieldCheck,
+  ShoppingCart,
+  Ship,
+  Tag,
+  XCircle,
+  FileText,
+  Printer
 } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
 import "./Admin.css";
@@ -722,31 +728,31 @@ function Admin() {
             className={`tab-btn ${activeTab === 'products' ? 'active' : ''}`}
             onClick={() => setActiveTab('products')}
           >
-            📦 Products
+            <Package size={18} style={{ marginRight: '8px', verticalAlign: 'middle', marginBottom: '2px' }} /> Products
           </button>
           <button
             className={`tab-btn ${activeTab === 'orders' ? 'active' : ''}`}
             onClick={() => setActiveTab('orders')}
           >
-            📋 Order Queue
+            <ClipboardList size={18} style={{ marginRight: '8px', verticalAlign: 'middle', marginBottom: '2px' }} /> Order Queue
           </button>
           <button
             className={`tab-btn ${activeTab === 'preorders' ? 'active' : ''}`}
             onClick={() => setActiveTab('preorders')}
           >
-            🛒 Pre-Orders
+            <ShoppingCart size={18} style={{ marginRight: '8px', verticalAlign: 'middle', marginBottom: '2px' }} /> Pre-Orders
           </button>
           <button
             className={`tab-btn ${activeTab === 'shipments' ? 'active' : ''}`}
             onClick={() => setActiveTab('shipments')}
           >
-            🚢 Shipments
+            <Ship size={18} style={{ marginRight: '8px', verticalAlign: 'middle', marginBottom: '2px' }} /> Shipments
           </button>
           <button
             className={`tab-btn ${activeTab === 'categories' ? 'active' : ''}`}
             onClick={() => setActiveTab('categories')}
           >
-            🏷️ Categories
+            <Tag size={18} style={{ marginRight: '8px', verticalAlign: 'middle', marginBottom: '2px' }} /> Categories
           </button>
         </div>
       </div>
@@ -831,7 +837,7 @@ function Admin() {
         <div className="modal-overlay" onClick={() => setShowLowStockModal(false)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <h2><span className="header-icon">⚠️</span> Low Stock Products ({lowStockProducts.length})</h2>
+              <h2><span className="header-icon" style={{ display: 'inline-flex', verticalAlign: 'middle' }}><AlertTriangle size={28} /></span> Low Stock Products ({lowStockProducts.length})</h2>
               <button className="modal-close" onClick={() => setShowLowStockModal(false)}>×</button>
             </div>
             <div className="modal-body">
@@ -867,7 +873,7 @@ function Admin() {
         <div className="modal-overlay" onClick={() => setShowOutOfStockModal(false)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <h2><span className="header-icon">❌</span> Out of Stock Products ({outOfStockProducts.length})</h2>
+              <h2><span className="header-icon" style={{ display: 'inline-flex', verticalAlign: 'middle' }}><XCircle size={28} /></span> Out of Stock Products ({outOfStockProducts.length})</h2>
               <button className="modal-close" onClick={() => setShowOutOfStockModal(false)}>×</button>
             </div>
             <div className="modal-body">
@@ -918,7 +924,7 @@ function Admin() {
                 style={{ maxWidth: '800px', width: '90%' }}
             >
                 <div className="modal-header">
-                    <h2><span className="header-icon">📑</span> Warehouse Dispatch Manifest</h2>
+                    <h2><span className="header-icon" style={{ display: 'inline-flex', verticalAlign: 'middle' }}><FileText size={28} /></span> Warehouse Dispatch Manifest</h2>
                     <button className="modal-close" onClick={() => setManifestData(null)}>×</button>
                 </div>
                 <div className="modal-body">
@@ -948,8 +954,8 @@ function Admin() {
                 </div>
                 <div className="modal-footer">
                     <button className="btn-secondary" onClick={() => setManifestData(null)}>Close</button>
-                    <button className="submit-btn" onClick={() => window.print()}>
-                        🖨️ Print Manifest
+                    <button className="submit-btn" onClick={() => window.print()} style={{ display: 'flex', alignItems: 'center' }}>
+                        <Printer size={18} style={{ marginRight: '8px' }} /> Print Manifest
                     </button>
                 </div>
             </motion.div>

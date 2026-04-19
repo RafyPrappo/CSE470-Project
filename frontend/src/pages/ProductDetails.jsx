@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { CheckCircle, AlertTriangle, XCircle, ShoppingCart } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 import "./ProductDetails.css";
@@ -132,9 +133,9 @@ function ProductDetails() {
                         <h1 className="product-title">{product.name}</h1>
                         <div className="product-price-row">
                             <span className="price">৳{product.retailPrice.toLocaleString()}</span>
-                            {status === 'in-stock' && <span className="status-badge instock">✅ In Stock</span>}
-                            {status === 'low-stock' && <span className="status-badge lowstock">⚠️ Only {product.stock} Left</span>}
-                            {status === 'out-of-stock' && <span className="status-badge outofstock">❌ Out of Stock</span>}
+                            {status === 'in-stock' && <span className="status-badge instock"><CheckCircle size={16} style={{marginRight: '4px'}}/> In Stock</span>}
+                            {status === 'low-stock' && <span className="status-badge lowstock"><AlertTriangle size={16} style={{marginRight: '4px'}}/> Only {product.stock} Left</span>}
+                            {status === 'out-of-stock' && <span className="status-badge outofstock"><XCircle size={16} style={{marginRight: '4px'}}/> Out of Stock</span>}
                         </div>
                     </div>
 
@@ -150,7 +151,7 @@ function ProductDetails() {
                     <div className="product-action-section">
                         {isPreOrderRequest ? (
                             <div className="preorder-notice">
-                                <span className="notice-icon">🛒</span>
+                                <span className="notice-icon"><ShoppingCart size={24} /></span>
                                 <p>This item is currently out of stock. You can place a pre-order request now, and we will arrange it for you!</p>
                             </div>
                         ) : null}

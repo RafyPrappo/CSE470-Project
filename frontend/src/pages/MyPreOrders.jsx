@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import { Package, Truck, Trash2, XCircle, AlertTriangle } from "lucide-react";
 import "./MyPreOrders.css";
 
 function MyPreOrders() {
@@ -211,7 +212,7 @@ function MyPreOrders() {
 
             {displayedPreOrders.length === 0 ? (
                 <div className="empty-state">
-                    <div className="empty-state-icon">📦</div>
+                    <div className="empty-state-icon" style={{color: '#3b82f6', marginBottom: '1rem'}}><Package size={64}/></div>
                     <h3>No Pre-Orders Found</h3>
                     <p>Try selecting a different status or refresh the page.</p>
                 </div>
@@ -225,7 +226,7 @@ function MyPreOrders() {
                                     <p>Ordered on: {new Date(po.createdAt).toLocaleDateString()}</p>
                                 </div>
                                 <div className={`po-status-badge ${po.status.toLowerCase()}`}>
-                                    {po.status === 'CANCELLED' ? '❌ CANCELLED' : po.status}
+                                    {po.status === 'CANCELLED' ? <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><XCircle size={16} /> CANCELLED</span> : po.status}
                                 </div>
                             </div>
 
@@ -319,14 +320,14 @@ function MyPreOrders() {
 
                                 <div className="po-info-row">
                                     <div className="po-info-item full-width">
-                                        <span className="info-label">🚚 Estimated Arrival</span>
+                                        <span className="info-label" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Truck size={16} /> Estimated Arrival</span>
                                         <span className="info-value">{getEstimatedArrivalText(po)}</span>
                                     </div>
                                 </div>
 
                                 {po.shipment && po.shipment.delayInDays > 0 && (
                                     <div className="po-delay-warning">
-                                        ⚠️ Shipment delayed by {po.shipment.delayInDays} days. ETA updated.
+                                        <AlertTriangle size={18} style={{ marginRight: '8px', verticalAlign: 'middle' }} /> Shipment delayed by {po.shipment.delayInDays} days. ETA updated.
                                     </div>
                                 )}
                             </div>
@@ -337,8 +338,9 @@ function MyPreOrders() {
                                         onClick={() => cancelPreOrder(po._id, po.product?.name)}
                                         className="cancel-btn"
                                         title="Cancel this pre-order"
+                                        style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
                                     >
-                                        🗑️ Cancel Pre-Order
+                                        <Trash2 size={18} /> Cancel Pre-Order
                                     </button>
                                 )}
                                 {po.status === 'CANCELLED' && (
