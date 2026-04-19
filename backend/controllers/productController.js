@@ -1,4 +1,6 @@
 import Product from "../models/Product.js";
+import Shipment from "../models/Shipment.js";
+
 
 // @desc    Add a new product
 // @route   POST /api/products/add
@@ -60,7 +62,7 @@ export const getProducts = async (req, res) => {
     }
 
     // Enhance pre-order products with ETA
-    const { default: Shipment } = await import("../models/Shipment.js");
+    
     const enhancedProducts = await Promise.all(products.map(async (product) => {
       let arrivalEstimate = null;
       if (product.isPreOrder) {
@@ -108,7 +110,7 @@ export const getProductById = async (req, res) => {
       // Wait, let's handle the import at the top later or dynamically import it.
       // Standard static import is better. But I'll do this here to avoid another replace.
       // Actually, I can use dynamic import here to not mess with the top just yet:
-      const { default: Shipment } = await import("../models/Shipment.js");
+      
 
       // Find the earliest active shipment containing this product
       const upcomingShipment = await Shipment.findOne({
