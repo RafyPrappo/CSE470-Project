@@ -71,15 +71,21 @@ export const updateShipment = async (req, res) => {
         const updatedShipment = await shipment.save();
         // If status change should cascade to pre-orders
         if (status) {
-            if (status === 'SHIPPED') {
+            if (status === 'PROCESSING') {
                 await PreOrder.updateMany(
-                    { shipment: shipment._id, status: 'APPROVED' },
-                    { $set: { status: 'SHIPPED' }, $push: { statusHistory: { status: 'SHIPPED', timestamp: Date.now(), note: 'Shipment marked as SHIPPED' } } }
+                    { shipment: shipment._id, status: { $in: ['SHIPPED', 'DELIVERED'] } },
+                    { $set: { status: 'APPROVED' }, $push: { statusHistory: { status: 'APPROVED', timestamp: Date.now(), note: 'Shipment reverted to PROCESSING' } } }
                 );
             }
-            if (['DELIVERED','LOCAL_HUB','CUSTOMS'].includes(status)) {
+            if (['SHIPPED', 'CUSTOMS', 'LOCAL_HUB'].includes(status)) {
                 await PreOrder.updateMany(
-                    { shipment: shipment._id, status: { $in: ['SHIPPED','APPROVED'] } },
+                    { shipment: shipment._id, status: { $in: ['APPROVED', 'PENDING', 'PROCESSING', 'SHIPPED', 'DELIVERED'] } },
+                    { $set: { status: 'SHIPPED' }, $push: { statusHistory: { status: 'SHIPPED', timestamp: Date.now(), note: `Shipment advanced to ${status}` } } }
+                );
+            }
+            if (status === 'DELIVERED') {
+                await PreOrder.updateMany(
+                    { shipment: shipment._id, status: { $in: ['SHIPPED', 'APPROVED', 'PENDING', 'PROCESSING'] } },
                     { $set: { status: 'DELIVERED' }, $push: { statusHistory: { status: 'DELIVERED', timestamp: Date.now(), note: 'Shipment marked as DELIVERED' } } }
                 );
             }

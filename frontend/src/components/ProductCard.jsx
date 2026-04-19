@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import "./ProductCard.css";
 
 function ProductCard({ product, onAddToCart, onNotify, isLoggedIn, existingPreOrder }) {
@@ -31,13 +32,13 @@ function ProductCard({ product, onAddToCart, onNotify, isLoggedIn, existingPreOr
     setQuantity(prev => {
       const newValue = prev + delta;
       if (newValue < 1) return 1;
-      
+
       // For pre-orders (out of stock or explicitly marked), allow unlimited quantity
       const isPreOrderItem = product.isPreOrder || product.stock <= 0;
       if (isPreOrderItem) {
         return newValue; // No limit for pre-orders
       }
-      
+
       // For regular items, limit by available stock
       if (newValue > product.stock) return product.stock;
       return newValue;
@@ -90,7 +91,7 @@ function ProductCard({ product, onAddToCart, onNotify, isLoggedIn, existingPreOr
 
   return (
     <div className="product-card">
-      <div className="card-image-container">
+      <Link to={`/product/${product._id}`} className="card-image-container" style={{ display: 'block' }}>
         {!imageError ? (
           <img
             src={product.image || `https://via.placeholder.com/300x200/1E293B/3B82F6?text=${product.name}`}
@@ -105,10 +106,12 @@ function ProductCard({ product, onAddToCart, onNotify, isLoggedIn, existingPreOr
         )}
 
         {getStatusBadge()}
-      </div>
+      </Link>
 
       <div className="card-content">
-        <h3 className="product-name">{product.name}</h3>
+        <Link to={`/product/${product._id}`} style={{ textDecoration: 'none' }}>
+          <h3 className="product-name">{product.name}</h3>
+        </Link>
 
         <div className="product-details">
           <div className="price-section">

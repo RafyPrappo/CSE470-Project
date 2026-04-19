@@ -5,7 +5,7 @@
   justify-content: center;
   padding: 2rem;
   background: radial-gradient(circle at 90% 10%, rgba(251, 191, 36, 0.15), transparent 40%),
-              radial-gradient(circle at 10% 90%, rgba(59, 130, 246, 0.1), transparent 40%);
+    radial-gradient(circle at 10% 90%, rgba(59, 130, 246, 0.1), transparent 40%);
 }
 
 .register-card {
@@ -33,6 +33,7 @@
   padding: 2px;
   background: linear-gradient(135deg, var(--accent-main), var(--primary-light));
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
   opacity: 0;
@@ -57,6 +58,7 @@
   margin-bottom: 0.75rem;
   background: linear-gradient(135deg, #fff, var(--accent-main));
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
   letter-spacing: -0.5px;
 }
@@ -338,13 +340,32 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  10%, 30%, 50%, 70%, 90% { transform: translateX(-3px); }
-  20%, 40%, 60%, 80% { transform: translateX(3px); }
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-3px);
+  }
+
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(3px);
+  }
 }
 
 @keyframes fadeInUp {
@@ -352,6 +373,7 @@
     opacity: 0;
     transform: translateY(30px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -363,27 +385,27 @@
   .register-card {
     padding: 2rem 1.5rem;
   }
-  
+
   .register-header h2 {
     font-size: 2rem;
   }
-  
+
   .register-btn {
     padding: 1rem;
     font-size: 1rem;
   }
-  
+
   .login-link-container {
     padding: 1.25rem;
     margin-top: 2rem;
   }
-  
+
   .login-link {
     padding: 0.7rem 1.5rem;
     min-width: 140px;
     font-size: 1rem;
   }
-  
+
   .form-group:focus-within::after {
     width: calc(100% - 2rem);
   }

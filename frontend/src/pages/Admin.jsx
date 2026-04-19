@@ -1,7 +1,26 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { 
+  BarChart3, 
+  Activity, 
+  AlertTriangle, 
+  Truck, 
+  ClipboardList, 
+  Package, 
+  Layers, 
+  Clock,
+  ChevronRight,
+  ShieldCheck
+} from "lucide-react";
+import { AnimatePresence } from "framer-motion";
 import "./Admin.css";
+
+import OrderQueue from "../components/Admin/OrderQueue";
+import ProductManager from "../components/Admin/ProductManager";
+import PreOrderManager from "../components/Admin/PreOrderManager";
+import ShipmentManager from "../components/Admin/ShipmentManager";
+import CategoryManager from "../components/Admin/CategoryManager";
 
 function Admin() {
   const [form, setForm] = useState({
@@ -10,6 +29,7 @@ function Admin() {
     stock: "",
     importCost: "",
     category: "",
+    description: "",
     image: "",
   });
 
@@ -24,6 +44,27 @@ function Admin() {
   const [activeTab, setActiveTab] = useState("products");
   const [preOrders, setPreOrders] = useState([]);
   const [shipments, setShipments] = useState([]);
+  const [manifestData, setManifestData] = useState(null);
+
+  const generateManifest = () => {
+    const pendingOrders = orders.filter(o => o.status === 'PENDING');
+    if (pendingOrders.length === 0) return alert("No pending orders to manifest.");
+    
+    // Aggregate items across all pending orders
+    const itemMap = {};
+    pendingOrders.forEach(order => {
+        order.items.forEach(item => {
+            if (itemMap[item.name]) {
+                itemMap[item.name].quantity += item.quantity;
+            } else {
+                itemMap[item.name] = { ...item };
+            }
+        });
+    });
+
+    setManifestData(Object.values(itemMap));
+    addLiveLog(`Manifest generated for ${pendingOrders.length} orders.`, 'success');
+  };
   const [shipmentForm, setShipmentForm] = useState({
     shipmentBatchId: "",
     origin: "China",
@@ -31,40 +72,174 @@ function Admin() {
     baseEstimatedArrival: ""
   });
 
+  const [categories, setCategories] = useState([]);
+  const [categoryForm, setCategoryForm] = useState({
+    name: "",
+    description: "",
+    image: ""
+  });
+
+  const [orders, setOrders] = useState([]);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [courierForm, setCourierForm] = useState({
+    courierName: "Pathao",
+    trackingId: "",
+    note: ""
+  });
+
+  // Hyper-Professional Analytics (Feature 11 Upgrade)
+  const [analytics, setAnalytics] = useState({
+    totalPipelineValue: 0,
+    priorityPulse: 0,
+    slaRisks: 0,
+    velocity: 0
+  });
+
+  const [liveLog, setLiveLog] = useState([]);
+  const [aiInsights, setAiInsights] = useState([]);
+
+  const generateAIInsights = (allOrders) => {
+    const insights = [];
+    const pendingOrders = allOrders.filter(o => o.status === 'PENDING');
+    
+    // Dhaka Batching Insight
+    const dhakaCount = pendingOrders.filter(o => o.shippingAddress.city.toLowerCase().includes('dhaka')).length;
+    if (dhakaCount >= 3) {
+        insights.push({
+            id: 'dhaka-batch',
+            title: 'Logistics Optimization',
+            text: `Batch ${dhakaCount} orders for Dhaka to save ~৳800 in consolidated Pathao shipping.`,
+            type: 'success'
+        });
+    }
+
+    // SLA Warning
+    const slaRisks = pendingOrders.filter(o => {
+        const hours = (new Date() - new Date(o.createdAt)) / (1000 * 60 * 60);
+        return hours > 36;
+    }).length;
+
+    if (slaRisks > 0) {
+        insights.push({
+            id: 'sla-risk',
+            title: 'SLA Breach Warning',
+            text: `${slaRisks} orders are nearing the 48h fulfillment deadline. Immediate action recommended.`,
+            type: 'warning'
+        });
+    }
+
+    // Inventory Pulse
+    const lowStock = products.filter(p => p.stock < 5).length;
+    if (lowStock > 2) {
+        insights.push({
+            id: 'inventory-pulse',
+            title: 'Inventory Alert',
+            text: `${lowStock} high-velocity items are below threshold. Restock recommended for Q2.`,
+            type: 'info'
+        });
+    }
+
+    setAiInsights(insights.slice(0, 3));
+  };
+  const updateAnalytics = (allOrders) => {
+    const activeOrders = allOrders.filter(o => o.status !== 'DELIVERED' && o.status !== 'CANCELLED');
+    const pipeline = activeOrders.reduce((sum, o) => sum + o.totalAmount, 0);
+    const pulse = activeOrders.filter(o => o.priority === 'HIGH').length;
+    
+    // SLA Risk: Pending orders > 48 hours
+    const riskCount = activeOrders.filter(o => {
+        const hours = (new Date() - new Date(o.createdAt)) / (1000 * 60 * 60);
+        return o.status === 'PENDING' && hours > 48;
+    }).length;
+
+    setAnalytics({
+        totalPipelineValue: pipeline,
+        priorityPulse: pulse,
+        slaRisks: riskCount,
+        velocity: Math.min(100, Math.round((allOrders.filter(o => o.status === 'DELIVERED').length / (allOrders.length || 1)) * 100))
+    });
+    generateAIInsights(allOrders);
+  };
+
+  const addLiveLog = (msg, type = 'info') => {
+    setLiveLog(prev => [{
+        id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        msg,
+        type,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    }, ...prev].slice(0, 10)); // Keep last 10
+  };
+
   // New state for modals
   const [showLowStockModal, setShowLowStockModal] = useState(false);
   const [showOutOfStockModal, setShowOutOfStockModal] = useState(false);
-  
   // New state for managing multiple toasts
   const [toasts, setToasts] = useState([]);
 
   const { user, isAdmin, token } = useAuth();
   const navigate = useNavigate();
 
+  // Consolidate all fetches for performance
+  const fetchAllData = useCallback(async () => {
+    try {
+      setLoading(true);
+      await Promise.all([
+        fetchProducts(),
+        fetchPreOrders(),
+        fetchShipments(),
+        fetchCategories(),
+        fetchOrders()
+      ]);
+    } catch (error) {
+      console.error("Critical dashboard fetch failed:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [token]); // token is stable from useAuth
+
   useEffect(() => {
     if (!isAdmin) {
       navigate("/products");
       return;
     }
-    fetchProducts();
-    fetchPreOrders();
-    fetchShipments();
-  }, [isAdmin, navigate]);
+    fetchAllData();
+  }, [isAdmin, navigate, fetchAllData]);
 
-  const fetchProducts = async () => {
+  const fetchOrders = useCallback(async () => {
     try {
-      setLoading(true);
+      const res = await fetch("http://localhost:5000/api/orders", {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setOrders(data);
+        updateAnalytics(data);
+      }
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+    }
+  }, [token]);
+
+  const fetchProducts = useCallback(async () => {
+    try {
       const res = await fetch("http://localhost:5000/api/products/");
       const data = await res.json();
       setProducts(data);
     } catch (error) {
       console.error("Error fetching products:", error);
-    } finally {
-      setLoading(false);
     }
-  };
+  }, []);
 
-  const fetchPreOrders = async () => {
+  const fetchCategories = useCallback(async () => {
+    try {
+      const res = await fetch("http://localhost:5000/api/categories");
+      if (res.ok) setCategories(await res.json());
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    }
+  }, []);
+
+  const fetchPreOrders = useCallback(async () => {
     try {
       const res = await fetch("http://localhost:5000/api/preorders", {
         headers: { "Authorization": `Bearer ${token}` }
@@ -73,9 +248,9 @@ function Admin() {
     } catch (error) {
       console.error("Error fetching pre-orders:", error);
     }
-  };
+  }, [token]);
 
-  const fetchShipments = async () => {
+  const fetchShipments = useCallback(async () => {
     try {
       const res = await fetch("http://localhost:5000/api/shipments", {
         headers: { "Authorization": `Bearer ${token}` }
@@ -84,7 +259,7 @@ function Admin() {
     } catch (error) {
       console.error("Error fetching shipments:", error);
     }
-  };
+  }, [token]);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -93,10 +268,13 @@ function Admin() {
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (file.size > 2 * 1024 * 1024) { // 2MB limit
-        showNotification("Image must be less than 2MB.", "error");
-        e.target.value = "";
-        return;
+      if (file.size > 1 * 1024 * 1024) { // 1MB limit for performance
+        showNotification("Performance Tip: Please keep images under 1MB for faster loading.", "warning");
+        if (file.size > 2 * 1024 * 1024) { // Strict 2MB limit
+            showNotification("Image exceeds 2MB limit.", "error");
+            e.target.value = "";
+            return;
+        }
       }
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -108,6 +286,29 @@ function Admin() {
 
   const handleShipmentChange = (e) => {
     setShipmentForm({ ...shipmentForm, [e.target.name]: e.target.value });
+  };
+
+  const handleCategoryChange = (e) => {
+    setCategoryForm({ ...categoryForm, [e.target.name]: e.target.value });
+  };
+
+  const handleCategoryImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 1 * 1024 * 1024) {
+        showNotification("Performance Tip: Please keep category images under 1MB.", "warning");
+        if (file.size > 2 * 1024 * 1024) {
+            showNotification("Image must be less than 2MB.", "error");
+            e.target.value = "";
+            return;
+        }
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setCategoryForm({ ...categoryForm, image: reader.result }); // Base64 string
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -134,6 +335,7 @@ function Admin() {
           stock: "",
           importCost: "",
           category: "",
+          description: "",
           image: "",
         });
         fetchProducts();
@@ -168,8 +370,51 @@ function Admin() {
         const data = await res.json();
         showNotification(data.error || "Failed to create", "error");
       }
-    } catch (err) {
+    } catch {
       showNotification("Error creating shipment", "error");
+    }
+  };
+
+  const handleCreateCategory = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch("http://localhost:5000/api/categories/add", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify(categoryForm)
+      });
+      if (res.ok) {
+        showNotification("📝 Category added successfully!", "success");
+        setCategoryForm({ name: "", description: "", image: "" });
+        fetchCategories();
+      } else {
+        const data = await res.json();
+        showNotification(data.error || "Failed to create category", "error");
+      }
+    } catch {
+      showNotification("Error creating category", "error");
+    }
+  };
+
+  const handleDeleteCategory = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this category?")) return;
+    try {
+      const res = await fetch(`http://localhost:5000/api/categories/${id}`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
+      if (res.ok) {
+        showNotification("Category removed", "success");
+        fetchCategories();
+      }
+    } catch (err) {
+      console.error(err);
+      showNotification("Error deleting category", "error");
     }
   };
 
@@ -224,7 +469,7 @@ function Admin() {
     }
   };
 
-  const incrementShipmentDelay = async (id, currentDelay) => {
+  const updateShipmentETA = async (id, newDate) => {
     try {
       const res = await fetch(`http://localhost:5000/api/shipments/${id}`, {
         method: "PUT",
@@ -232,15 +477,93 @@ function Admin() {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`
         },
-        body: JSON.stringify({ delayInDays: currentDelay + 1 })
+        body: JSON.stringify({ baseEstimatedArrival: newDate })
+      });
+      if (res.ok) {
+        fetchShipments();
+        fetchPreOrders(); // Since ETA might change for linked pre-orders
+        showNotification("Arrival Date Updated!", "success");
+      }
+    } catch (err) {
+      console.error(err);
+      showNotification("Failed to update date", "error");
+    }
+  };
+
+  const updateOrderStatus = async (id, status, note = "", priority = null) => {
+    try {
+      const body = { note };
+      if (status) body.status = status;
+      if (priority) body.priority = priority;
+
+      const res = await fetch(`http://localhost:5000/api/orders/${id}/status`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify(body)
+      });
+      if (res.ok) {
+        showNotification(`Order updated successfully!`, "success");
+        addLiveLog(`Order ${id} updated`, 'success');
+        fetchOrders();
+        if (selectedOrder?._id === id) {
+           const updated = await res.json();
+           setSelectedOrder(updated);
+        }
+      }
+    } catch {
+      showNotification("Error updating order", "error");
+    }
+  };
+
+  const handleAddCourierLog = async (e, orderId, isPreOrder = false) => {
+    e.preventDefault();
+    const endpoint = isPreOrder 
+      ? `http://localhost:5000/api/preorders/${orderId}/courier`
+      : `http://localhost:5000/api/orders/${orderId}/courier`;
+    
+    try {
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify(courierForm)
+      });
+      if (res.ok) {
+        showNotification("🚚 Courier log added and status updated!", "success");
+        addLiveLog(`Courier log attached to order`, 'info');
+        setCourierForm({ courierName: "Pathao", trackingId: "", note: "" });
+        isPreOrder ? fetchPreOrders() : fetchOrders();
+        // Update selected order view
+        const updated = await res.json();
+        setSelectedOrder(updated);
+      }
+    } catch {
+      showNotification("Failed to add courier log", "error");
+    }
+  };
+  const updateShipmentStatus = async (id, newStatus) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/shipments/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ status: newStatus })
       });
       if (res.ok) {
         fetchShipments();
         fetchPreOrders();
-        showNotification("Delay updated (+1 day)", "success");
+        showNotification("Shipment Status Updated!", "success");
       }
     } catch (err) {
       console.error(err);
+      showNotification("Failed to update status", "error");
     }
   };
 
@@ -293,9 +616,9 @@ function Admin() {
   };
 
   const showNotification = (message, type = "success") => {
-    const id = Date.now();
+    const id = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     setToasts(prev => [...prev, { id, message, type }]);
-    
+    // Remove toast after 3 seconds
     setTimeout(() => {
       setToasts(prev => prev.filter(toast => toast.id !== id));
     }, 3000);
@@ -339,7 +662,7 @@ function Admin() {
 
   const lowStockProducts = products.filter(p => p.stock > 0 && p.stock < 5);
   const outOfStockProducts = products.filter(p => p.stock === 0);
-  const totalValue = products.reduce((sum, p) => sum + (p.retailPrice * p.stock), 0);
+  // const totalValue = products.reduce((sum, p) => sum + (p.retailPrice * p.stock), 0);
 
   // ===== Floating Low Stock Notifications =====
   const prevLowStock = useRef([]);
@@ -374,11 +697,11 @@ function Admin() {
       {/* Toast Container for multiple notifications */}
       <div className="toast-container">
         {toasts.map((toast, index) => (
-          <div 
-            key={toast.id} 
+          <div
+            key={toast.id}
             className={`toast ${toast.type}`}
-            style={{ 
-              bottom: `${20 + index * 80}px`,
+            style={{
+              bottom: `${20 + index * 80}px`, // Stack toasts with 80px gap
               zIndex: 9999 - index
             }}
           >
@@ -402,6 +725,12 @@ function Admin() {
             📦 Products
           </button>
           <button
+            className={`tab-btn ${activeTab === 'orders' ? 'active' : ''}`}
+            onClick={() => setActiveTab('orders')}
+          >
+            📋 Order Queue
+          </button>
+          <button
             className={`tab-btn ${activeTab === 'preorders' ? 'active' : ''}`}
             onClick={() => setActiveTab('preorders')}
           >
@@ -413,549 +742,115 @@ function Admin() {
           >
             🚢 Shipments
           </button>
+          <button
+            className={`tab-btn ${activeTab === 'categories' ? 'active' : ''}`}
+            onClick={() => setActiveTab('categories')}
+          >
+            🏷️ Categories
+          </button>
         </div>
       </div>
 
+      {activeTab === 'orders' && (
+        <OrderQueue 
+          orders={orders}
+          selectedOrder={selectedOrder}
+          setSelectedOrder={setSelectedOrder}
+          updateOrderStatus={updateOrderStatus}
+          courierForm={courierForm}
+          setCourierForm={setCourierForm}
+          handleAddCourierLog={handleAddCourierLog}
+          generateManifest={generateManifest}
+        />
+      )}
+
       {activeTab === 'products' && (
-        <div className="admin-grid">
-          {/* Add Product Form */}
-          <div className="admin-card form-card">
-            <div className="card-header">
-              <h2>
-                <span className="header-icon">➕</span>
-                Add New Product
-              </h2>
-              <p className="card-description">Fill in the product details below</p>
-            </div>
-
-            <form onSubmit={handleSubmit} className="admin-form">
-              <div className="form-group">
-                <label htmlFor="name">Product Name</label>
-                <input
-                  id="name"
-                  name="name"
-                  type="text"
-                  placeholder="e.g., iPhone 15 Pro Case"
-                  value={form.name}
-                  onChange={handleChange}
-                  required
-                  className="form-input"
-                />
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="category">Category</label>
-                <select
-                  id="category"
-                  name="category"
-                  value={form.category}
-                  onChange={handleChange}
-                  className="form-input"
-                  required
-                >
-                  <option value="">Select category</option>
-                  <option value="gadgets">Gadgets</option>
-                  <option value="cases">Phone Cases</option>
-                  <option value="decor">Home Decor</option>
-                  <option value="accessories">Accessories</option>
-                </select>
-              </div>
-
-              <div className="form-row">
-                <div className="form-group">
-                  <label htmlFor="retailPrice">Retail Price (৳)</label>
-                  <input
-                    id="retailPrice"
-                    name="retailPrice"
-                    type="number"
-                    placeholder="e.g., 2999"
-                    value={form.retailPrice}
-                    onChange={handleChange}
-                    required
-                    className="form-input"
-                    min="0"
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="importCost">Import Cost (৳)</label>
-                  <input
-                    id="importCost"
-                    name="importCost"
-                    type="number"
-                    placeholder="e.g., 1500"
-                    value={form.importCost}
-                    onChange={handleChange}
-                    required
-                    className="form-input"
-                    min="0"
-                  />
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="stock">Initial Stock Quantity</label>
-                <input
-                  id="stock"
-                  name="stock"
-                  type="number"
-                  placeholder="e.g., 50"
-                  value={form.stock}
-                  onChange={handleChange}
-                  required
-                  className="form-input"
-                  min="0"
-                />
-              </div>
-
-              {/* Clean Button-Style Image Upload */}
-              <div className="form-group">
-                <label>Product Image</label>
-                <div className="image-upload-row">
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="image-upload-input"
-                    id="product-image-upload"
-                  />
-                  <label htmlFor="product-image-upload" className="image-upload-button">
-                    <span className="button-icon">📸</span>
-                    Choose Image
-                  </label>
-                  {form.image && (
-                    <>
-                      <span className="image-filename">Image selected</span>
-                      <button
-                        type="button"
-                        className="image-clear-btn"
-                        onClick={() => setForm({ ...form, image: "" })}
-                        title="Remove image"
-                      >
-                        ✕
-                      </button>
-                    </>
-                  )}
-                  {!form.image && (
-                    <span className="image-hint">PNG, JPG (max 2MB)</span>
-                  )}
-                </div>
-                {form.image && (
-                  <div className="image-preview-thumb">
-                    <img src={form.image} alt="Preview" />
-                  </div>
-                )}
-              </div>
-
-              {form.retailPrice && form.importCost && (
-                <div className="profit-preview">
-                  <div className="profit-label">Estimated Profit per Unit</div>
-                  <div className="profit-value">
-                    ৳{form.retailPrice - form.importCost}
-                    <span className="profit-margin">
-                      ({((form.retailPrice - form.importCost) / form.retailPrice * 100).toFixed(1)}%)
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              <button
-                type="submit"
-                className="submit-btn"
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? (
-                  <>
-                    <span className="spinner" />
-                    Adding Product...
-                  </>
-                ) : (
-                  <>
-                    <span>✨</span>
-                    Add Product
-                  </>
-                )}
-              </button>
-            </form>
-          </div>
-
-          {/* Quick Stats with Clickable Boxes */}
-          <div className="admin-card stats-card">
-            <div className="card-header">
-              <h2>
-                <span className="header-icon">📊</span>
-                Overview
-              </h2>
-            </div>
-
-            <div className="stats-grid">
-              <div className="stat-box">
-                <div className="stat-icon">📦</div>
-                <div className="stat-details">
-                  <span className="stat-value">{products.length}</span>
-                  <span className="stat-label">Total</span>
-                </div>
-              </div>
-
-              <div className="stat-box">
-                <div className="stat-icon">✅</div>
-                <div className="stat-details">
-                  <span className="stat-value">
-                    {products.filter(p => p.stock >= 5).length}
-                  </span>
-                  <span className="stat-label">In Stock</span>
-                </div>
-              </div>
-
-              <div 
-                className="stat-box clickable" 
-                onClick={() => setShowLowStockModal(true)}
-                title="Click to view low stock products"
-              >
-                <div className="stat-icon">⚠️</div>
-                <div className="stat-details">
-                  <span className="stat-value">{lowStockProducts.length}</span>
-                  <span className="stat-label">Low Stock</span>
-                </div>
-              </div>
-
-              <div 
-                className="stat-box clickable" 
-                onClick={() => setShowOutOfStockModal(true)}
-                title="Click to view out of stock products"
-              >
-                <div className="stat-icon">❌</div>
-                <div className="stat-details">
-                  <span className="stat-value">{outOfStockProducts.length}</span>
-                  <span className="stat-label">Out of Stock</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Product List */}
-          <div className="product-list-card">
-            <div className="product-list-header">
-              <div className="product-list-title">
-                <h2>Product Inventory</h2>
-                <span className="product-count-badge">{products.length} items</span>
-              </div>
-
-              <div className="search-box">
-                <span className="search-icon">🔍</span>
-                <input
-                  type="text"
-                  placeholder="Search products..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-            </div>
-
-            {filteredProducts.length === 0 ? (
-              <div className="empty-state">
-                <div className="empty-state-icon">📦</div>
-                <h3>No products found</h3>
-                <p>Try adjusting your search or add new products</p>
-              </div>
-            ) : (
-              <div className="product-table-container">
-                <table className="product-table">
-                  <thead>
-                    <tr>
-                      <th>#</th>
-                      <th>Product</th>
-                      <th>Price</th>
-                      <th>Cost</th>
-                      <th>Profit</th>
-                      <th>Stock</th>
-                      <th>Status</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredProducts.map((product, index) => {
-                      const profit = getProfitMargin(product.retailPrice, product.importCost);
-                      const stockBarColor = getStockBarColor(product.stock);
-                      const maxStock = Math.max(...products.map(p => p.stock), 100);
-                      const stockPercentage = Math.min((product.stock / maxStock) * 100, 100);
-
-                      return (
-                        <tr key={product._id} data-product-id={product._id}>
-                          <td className="index-cell">
-                            <span className="product-index">{index + 1}</span>
-                          </td>
-
-                          <td>
-                            <div className="product-info-cell">
-                              <div className="product-details">
-                                <span className="product-name">{product.name}</span>
-                                <span className="product-category">{product.category || 'Uncategorized'}</span>
-                              </div>
-                            </div>
-                          </td>
-
-                          <td>
-                            <div className="price-cell">
-                              <span className="retail-price">৳{product.retailPrice.toLocaleString()}</span>
-                            </div>
-                          </td>
-
-                          <td>
-                            <div className="price-cell">
-                              <span className="import-cost">
-                                ৳{product.importCost.toLocaleString()}
-                              </span>
-                            </div>
-                          </td>
-
-                          <td>
-                            <span className={`profit-badge ${profit.class}`}>
-                              {profit.value}%
-                            </span>
-                          </td>
-
-                          <td>
-                            <div className="stock-cell">
-                              <div className="stock-info-header">
-                                <span className="stock-current">{formatStockValue(product.stock)}</span>
-                                <span className="stock-percentage">{Math.round(stockPercentage)}%</span>
-                              </div>
-                              <div className="stock-bar-container">
-                                <div
-                                  className="stock-bar-fill"
-                                  style={{
-                                    width: `${stockPercentage}%`,
-                                    backgroundColor: stockBarColor
-                                  }}
-                                />
-                              </div>
-                            </div>
-                          </td>
-
-                          <td>
-                            <span className={`status-badge ${product.status}`}>
-                              {product.status === 'in-stock' && 'In Stock'}
-                              {product.status === 'low-stock' && 'Low Stock'}
-                              {product.status === 'out-of-stock' && 'Out of Stock'}
-                            </span>
-                          </td>
-
-                          <td>
-                            <div className="action-cell">
-                              {editingId === product._id ? (
-                                <div className="stock-editor">
-                                  <input
-                                    type="number"
-                                    min="0"
-                                    value={editValue}
-                                    onChange={(e) => setEditValue(e.target.value)}
-                                    className="stock-editor-input"
-                                    autoFocus
-                                    onKeyPress={(e) => {
-                                      if (e.key === 'Enter') {
-                                        handleStockUpdate(product._id, parseInt(editValue) || 0);
-                                      }
-                                    }}
-                                  />
-                                  <button
-                                    onClick={() => handleStockUpdate(product._id, parseInt(editValue) || 0)}
-                                    className="stock-editor-btn confirm"
-                                    title="Confirm"
-                                  >
-                                    ✓
-                                  </button>
-                                  <button
-                                    onClick={cancelEditing}
-                                    className="stock-editor-btn cancel"
-                                    title="Cancel"
-                                  >
-                                    ✕
-                                  </button>
-                                </div>
-                              ) : (
-                                <>
-                                  <button
-                                    onClick={() => startEditing(product)}
-                                    className="action-btn edit-btn"
-                                    title="Edit stock"
-                                  >
-                                    <span className="action-icon">✎</span>
-                                    <span className="action-text">Edit</span>
-                                  </button>
-                                  <button
-                                    onClick={() => handleDelete(product._id)}
-                                    className="action-btn delete-btn"
-                                    title="Delete product"
-                                  >
-                                    <span className="action-icon">🗑️</span>
-                                    <span className="action-text">Delete</span>
-                                  </button>
-                                </>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        </div>
+        <ProductManager 
+          form={form}
+          setForm={setForm}
+          handleChange={handleChange}
+          handleImageUpload={handleImageUpload}
+          categories={categories}
+          handleSubmit={handleSubmit}
+          isSubmitting={isSubmitting}
+          products={products}
+          lowStockProducts={lowStockProducts}
+          outOfStockProducts={outOfStockProducts}
+          setShowLowStockModal={setShowLowStockModal}
+          setShowOutOfStockModal={setShowOutOfStockModal}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          filteredProducts={filteredProducts}
+          getProfitMargin={getProfitMargin}
+          getStockBarColor={getStockBarColor}
+          formatStockValue={formatStockValue}
+          editingId={editingId}
+          editValue={editValue}
+          setEditValue={setEditValue}
+          handleStockUpdate={handleStockUpdate}
+          cancelEditing={cancelEditing}
+          startEditing={startEditing}
+          handleDelete={handleDelete}
+        />
       )}
 
-      {/* Pre-Orders Tab */}
       {activeTab === 'preorders' && (
-        <div className="admin-grid" style={{ gridTemplateColumns: '1fr' }}>
-          <div className="admin-card">
-            <div className="card-header">
-              <h2><span className="header-icon">🛒</span> Pre-Order Requests</h2>
-            </div>
-            <div className="product-table-container">
-              <table className="product-table">
-                <thead>
-                  <tr>
-                    <th>Date</th>
-                    <th>Customer</th>
-                    <th>Product</th>
-                    <th>Qty</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {preOrders.map(po => (
-                    <tr key={po._id}>
-                      <td>{new Date(po.createdAt).toLocaleDateString()}</td>
-                      <td>{po.user?.name}</td>
-                      <td>{po.product?.name}</td>
-                      <td>{po.quantity}</td>
-                      <td>
-                        <span className={`status-badge ${po.status.toLowerCase()}`}>
-                          {po.status}
-                        </span>
-                      </td>
-                      <td>
-                        <button
-                          className="action-btn edit-btn"
-                          onClick={() => updatePreOrderStatus(po._id, 'APPROVED')}
-                        >
-                          Approve
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
+        <PreOrderManager 
+          preOrders={preOrders}
+          updatePreOrderStatus={updatePreOrderStatus}
+          linkPreOrderToShipment={linkPreOrderToShipment}
+          shipments={shipments}
+        />
       )}
 
-      {/* Shipments Tab */}
       {activeTab === 'shipments' && (
-        <div className="admin-grid" style={{ gridTemplateColumns: '1fr' }}>
-          <div className="admin-card">
-            <div className="card-header">
-              <h2><span className="header-icon">🚢</span> Active Shipments</h2>
-            </div>
-            <div className="product-table-container">
-              <table className="product-table">
-                <thead>
-                  <tr>
-                    <th>Batch ID</th>
-                    <th>Origin</th>
-                    <th>Destination</th>
-                    <th>ETA</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {shipments.map(s => (
-                    <tr key={s._id}>
-                      <td>{s.shipmentBatchId}</td>
-                      <td>{s.origin}</td>
-                      <td>{s.destination}</td>
-                      <td>{new Date(s.finalETA).toLocaleDateString()}</td>
-                      <td>{s.status}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
+        <ShipmentManager 
+          shipmentForm={shipmentForm}
+          handleShipmentChange={handleShipmentChange}
+          handleCreateShipment={handleCreateShipment}
+          shipments={shipments}
+          updateShipmentStatus={updateShipmentStatus}
+          updateShipmentETA={updateShipmentETA}
+        />
       )}
 
-      {/* Low Stock Modal */}
+
+      {activeTab === 'categories' && (
+        <CategoryManager 
+          categoryForm={categoryForm}
+          handleCategoryChange={handleCategoryChange}
+          handleCategoryImageUpload={handleCategoryImageUpload}
+          handleCreateCategory={handleCreateCategory}
+          categories={categories}
+          handleDeleteCategory={handleDeleteCategory}
+        />
+      )}
+
+      {/* Global Modals */}
       {showLowStockModal && (
         <div className="modal-overlay" onClick={() => setShowLowStockModal(false)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>
-                <span className="header-icon">⚠️</span>
-                Low Stock Products ({lowStockProducts.length})
-              </h2>
+              <h2><span className="header-icon">⚠️</span> Low Stock Products ({lowStockProducts.length})</h2>
               <button className="modal-close" onClick={() => setShowLowStockModal(false)}>×</button>
             </div>
-            
             <div className="modal-body">
               {lowStockProducts.length === 0 ? (
-                <div className="empty-state">
-                  <p>No low stock products found.</p>
-                </div>
+                <div className="empty-state"><p>No low stock products found.</p></div>
               ) : (
                 <table className="product-table">
                   <thead>
-                    <tr>
-                      <th>Product</th>
-                      <th>Category</th>
-                      <th>Current Stock</th>
-                      <th>Status</th>
-                      <th>Action</th>
-                    </tr>
+                    <tr><th>Product</th><th>Category</th><th>Current Stock</th><th>Status</th><th>Action</th></tr>
                   </thead>
                   <tbody>
                     {lowStockProducts.map(product => (
                       <tr key={product._id}>
-                        <td>
-                          <div className="product-info-cell">
-                            <span className="product-name">{product.name}</span>
-                          </div>
-                        </td>
+                        <td><div className="product-info-cell"><span className="product-name">{product.name}</span></div></td>
                         <td>{product.category || 'Uncategorized'}</td>
+                        <td><span style={{ color: product.stock === 0 ? '#EF4444' : product.stock < 5 ? '#F59E0B' : '#10B981', fontWeight: 'bold' }}>{product.stock}</span></td>
+                        <td><span className={`status-badge ${product.stock === 0 ? 'out-of-stock' : 'low-stock'}`}>Low Stock</span></td>
                         <td>
-                          <span style={{ 
-                            color: product.stock === 0 ? '#EF4444' : 
-                                   product.stock < 5 ? '#F59E0B' : '#10B981',
-                            fontWeight: 'bold'
-                          }}>
-                            {product.stock}
-                          </span>
-                        </td>
-                        <td>
-                          <span className={`status-badge ${product.stock === 0 ? 'out-of-stock' : 'low-stock'}`}>
-                            Low Stock
-                          </span>
-                        </td>
-                        <td>
-                          <button
-                            className="action-btn edit-btn"
-                            onClick={() => {
-                              setShowLowStockModal(false);
-                              startEditing(product);
-                              setTimeout(() => {
-                                document.querySelector(`[data-product-id="${product._id}"]`)?.scrollIntoView({
-                                  behavior: 'smooth',
-                                  block: 'center'
-                                });
-                              }, 100);
-                            }}
-                          >
-                            Update Stock
-                          </button>
+                          <button className="action-btn edit-btn" onClick={() => { setShowLowStockModal(false); startEditing(product); }}>Update Stock</button>
                         </td>
                       </tr>
                     ))}
@@ -963,79 +858,35 @@ function Admin() {
                 </table>
               )}
             </div>
-            
-            <div className="modal-footer">
-              <button className="submit-btn" onClick={() => setShowLowStockModal(false)}>
-                Close
-              </button>
-            </div>
+            <div className="modal-footer"><button className="submit-btn" onClick={() => setShowLowStockModal(false)}>Close</button></div>
           </div>
         </div>
       )}
 
-      {/* Out of Stock Modal */}
       {showOutOfStockModal && (
         <div className="modal-overlay" onClick={() => setShowOutOfStockModal(false)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>
-                <span className="header-icon">❌</span>
-                Out of Stock Products ({outOfStockProducts.length})
-              </h2>
+              <h2><span className="header-icon">❌</span> Out of Stock Products ({outOfStockProducts.length})</h2>
               <button className="modal-close" onClick={() => setShowOutOfStockModal(false)}>×</button>
             </div>
-            
             <div className="modal-body">
               {outOfStockProducts.length === 0 ? (
-                <div className="empty-state">
-                  <p>No out of stock products found.</p>
-                </div>
+                <div className="empty-state"><p>No out of stock products found.</p></div>
               ) : (
                 <table className="product-table">
                   <thead>
-                    <tr>
-                      <th>Product</th>
-                      <th>Category</th>
-                      <th>Last Stock</th>
-                      <th>Status</th>
-                      <th>Action</th>
-                    </tr>
+                    <tr><th>Product</th><th>Category</th><th>Last Stock</th><th>Status</th><th>Action</th></tr>
                   </thead>
                   <tbody>
                     {outOfStockProducts.map(product => (
                       <tr key={product._id}>
-                        <td>
-                          <div className="product-info-cell">
-                            <span className="product-name">{product.name}</span>
-                          </div>
-                        </td>
+                        <td><div className="product-info-cell"><span className="product-name">{product.name}</span></div></td>
                         <td>{product.category || 'Uncategorized'}</td>
+                        <td><span style={{ color: '#EF4444', fontWeight: 'bold' }}>0</span></td>
+                        <td><span className="status-badge out-of-stock">Out of Stock</span></td>
                         <td>
-                          <span style={{ color: '#EF4444', fontWeight: 'bold' }}>
-                            0
-                          </span>
-                        </td>
-                        <td>
-                          <span className="status-badge out-of-stock">
-                            Out of Stock
-                          </span>
-                        </td>
-                        <td>
-                          <button
-                            className="action-btn edit-btn"
-                            onClick={() => {
-                              setShowOutOfStockModal(false);
-                              startEditing(product);
-                              setTimeout(() => {
-                                document.querySelector(`[data-product-id="${product._id}"]`)?.scrollIntoView({
-                                  behavior: 'smooth',
-                                  block: 'center'
-                                });
-                              }, 100);
-                            }}
-                          >
-                            Restock
-                          </button>
+                          <button className="action-btn edit-btn" onClick={() => { setShowOutOfStockModal(false); startEditing(product); }}>Restock</button>
                         </td>
                       </tr>
                     ))}
@@ -1043,15 +894,90 @@ function Admin() {
                 </table>
               )}
             </div>
-            
-            <div className="modal-footer">
-              <button className="submit-btn" onClick={() => setShowOutOfStockModal(false)}>
-                Close
-              </button>
-            </div>
+            <div className="modal-footer"><button className="submit-btn" onClick={() => setShowOutOfStockModal(false)}>Close</button></div>
           </div>
         </div>
       )}
+
+      {/* Feature Manifest Modal (Elite Tier) */}
+      <AnimatePresence>
+      {manifestData && (
+        <motion.div 
+            className="modal-overlay" 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setManifestData(null)}
+        >
+            <motion.div 
+                className="modal-content glass-morph" 
+                initial={{ scale: 0.9, y: 20 }}
+                animate={{ scale: 1, y: 0 }}
+                exit={{ scale: 0.9, y: 20 }}
+                onClick={e => e.stopPropagation()} 
+                style={{ maxWidth: '800px', width: '90%' }}
+            >
+                <div className="modal-header">
+                    <h2><span className="header-icon">📑</span> Warehouse Dispatch Manifest</h2>
+                    <button className="modal-close" onClick={() => setManifestData(null)}>×</button>
+                </div>
+                <div className="modal-body">
+                    <p style={{ color: '#94a3b8', marginBottom: '1.5rem' }}>
+                        The following items must be picked and packed for current pending orders.
+                    </p>
+                    <table className="product-table">
+                        <thead>
+                            <tr>
+                                <th>Item Name</th>
+                                <th>Total Quantity To Pick</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {manifestData.map((item, i) => (
+                                <tr key={i}>
+                                    <td style={{ fontWeight: 'bold' }}>{item.name}</td>
+                                    <td>
+                                        <span className="quantity-badge">{item.quantity} units</span>
+                                    </td>
+                                    <td><span className="status-badge processing">Ready to Pick</span></td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+                <div className="modal-footer">
+                    <button className="btn-secondary" onClick={() => setManifestData(null)}>Close</button>
+                    <button className="submit-btn" onClick={() => window.print()}>
+                        🖨️ Print Manifest
+                    </button>
+                </div>
+            </motion.div>
+        </motion.div>
+      )}
+      </AnimatePresence>
+
+      <style>{`
+          .glass-morph {
+              background: rgba(15, 23, 42, 0.8) !important;
+              backdrop-filter: blur(20px) !important;
+              border: 1px solid rgba(255, 255, 255, 0.1) !important;
+              box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
+          }
+          .quantity-badge {
+              background: rgba(59, 130, 246, 0.1);
+              color: #3b82f6;
+              padding: 0.3rem 0.8rem;
+              border-radius: 999px;
+              font-weight: 800;
+          }
+          @media print {
+              .navbar, .admin-sidebar, .modal-header, .modal-footer, .card-header { display: none !important; }
+              .modal-content { position: absolute; top: 0; left: 0; width: 100%; border: none; box-shadow: none; background: white !important; color: black !important; }
+              .product-table { width: 100%; border-collapse: collapse; }
+              .product-table th, .product-table td { border: 1px solid #eee; padding: 10px; color: black !important; }
+          }
+      `}</style>
     </div>
   );
 }
