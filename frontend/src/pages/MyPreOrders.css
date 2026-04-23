@@ -75,6 +75,225 @@
   font-size: 0.9rem;
 }
 
+/* Advanced Step Tracker (Horizontal) */
+.step-tracker-horizontal {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 2.5rem;
+    position: relative;
+    padding: 0 1rem;
+    width: 100%;
+}
+
+.step-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    position: relative;
+    z-index: 2;
+}
+
+.step-node {
+    width: 32px;
+    height: 32px;
+    background: #1e293b;
+    border: 3px solid #334155;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: #64748b;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    margin-bottom: 0.75rem;
+}
+
+.step-item.completed .step-node {
+    background: #10b981;
+    border-color: #10b981;
+    color: white;
+    transform: scale(1.1);
+}
+
+.step-item.active .step-node {
+    background: #3b82f6;
+    border-color: #3b82f6;
+    color: white;
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.6);
+    animation: activePulse 2s infinite;
+}
+
+@keyframes activePulse {
+    0% { transform: scale(1); box-shadow: 0 0 10px rgba(59, 130, 246, 0.4); }
+    50% { transform: scale(1.15); box-shadow: 0 0 25px rgba(59, 130, 246, 0.8); }
+    100% { transform: scale(1); box-shadow: 0 0 10px rgba(59, 130, 246, 0.4); }
+}
+
+.step-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.step-item.completed .step-label, 
+.step-item.active .step-label {
+    color: #f8fafc;
+}
+
+.step-line {
+    position: absolute;
+    top: 16px;
+    left: 50%;
+    width: 100%;
+    height: 3px;
+    background: #334155;
+    z-index: -1;
+}
+
+.step-item.completed .step-line {
+    background: #10b981;
+    transition: width 0.5s ease;
+}
+
+/* 3D Package Visualization */
+.order-visual-tracking {
+    margin: 2.5rem 0;
+    padding: 2rem;
+    background: rgba(15, 23, 42, 0.5);
+    border-radius: 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.package-3d-scene {
+    perspective: 1000px;
+    width: 160px;
+    height: 160px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 2rem;
+}
+
+.package-box {
+    width: 60px;
+    height: 60px;
+    position: relative;
+    transform-style: preserve-3d;
+    transform: rotateX(-20deg) rotateY(45deg);
+    animation: rotateBox 12s infinite linear;
+    transition: all 0.5s ease;
+}
+
+@keyframes rotateBox {
+    0% { transform: rotateX(-20deg) rotateY(0deg); }
+    100% { transform: rotateX(-20deg) rotateY(360deg); }
+}
+
+.face {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    background: rgba(245, 158, 11, 0.9);
+    border: 1.5px solid rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: inset 0 0 15px rgba(0,0,0,0.1);
+}
+
+.face.front  { transform: rotateY(0deg) translateZ(30px); }
+.face.back   { transform: rotateY(180deg) translateZ(30px); }
+.face.left   { transform: rotateY(-90deg) translateZ(30px); }
+.face.right  { transform: rotateY(90deg) translateZ(30px); }
+.face.top    { transform: rotateX(90deg) translateZ(30px); background: #f59e0b; }
+.face.bottom { transform: rotateX(-90deg) translateZ(30px); background: #d97706; }
+
+/* Status Specific Visuals */
+.package-box.shipped .face { background: rgba(59, 130, 246, 0.9); }
+.package-box.shipped .face.top { background: #3b82f6; }
+.package-box.delivered .face { background: rgba(16, 185, 129, 0.9); }
+.package-box.delivered .face.top { background: #10b981; }
+
+.visual-status-text {
+    margin-top: 1.5rem;
+    font-size: 0.9rem;
+    font-weight: 900;
+    letter-spacing: 0.2em;
+    color: #f8fafc;
+    text-transform: uppercase;
+    text-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+}
+
+/* Courier Log Polishing */
+.courier-log-section {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: rgba(30, 41, 59, 0.3);
+    border-radius: 1rem;
+    border-left: 4px solid #3b82f6;
+}
+
+.log-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.tracking-id {
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+    color: #10b981;
+    background: rgba(16, 185, 129, 0.1);
+    padding: 0.2rem 0.5rem;
+    border-radius: 0.25rem;
+}
+
+.invoice-btn {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #f8fafc;
+    padding: 0.75rem 1.25rem;
+    border-radius: 0.75rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.invoice-btn:hover {
+    background: rgba(59, 130, 246, 0.15);
+    border-color: #3b82f6;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+@media print {
+    body { background: white !important; }
+    .navbar, .footer, .cancel-btn, .invoice-btn, .package-3d-scene { display: none !important; }
+    .my-preorders-page { padding: 0 !important; }
+    .preorder-card { 
+        border: 2px solid #eee !important; 
+        box-shadow: none !important; 
+        background: white !important;
+        color: black !important;
+    }
+    .gradient-text, .visual-status-text { color: black !important; background: none !important; -webkit-text-fill-color: initial !important; }
+    .info-label { color: #666 !important; }
+    .info-value, h3 { color: black !important; }
+}
+
 .po-status-badge {
   padding: 0.5rem 1rem;
   border-radius: 9999px;
@@ -84,11 +303,30 @@
   letter-spacing: 0.05em;
 }
 
-.po-status-badge.pending { background: #fef3c7; color: #92400e; }
-.po-status-badge.approved { background: #dbeafe; color: #1e40af; }
-.po-status-badge.shipped { background: #fae8ff; color: #86198f; }
-.po-status-badge.delivered { background: #dcfce7; color: #166534; }
-.po-status-badge.cancelled { background: #fee2e2; color: #991b1b; }
+.po-status-badge.pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.po-status-badge.approved {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.po-status-badge.shipped {
+  background: #fae8ff;
+  color: #86198f;
+}
+
+.po-status-badge.delivered {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.po-status-badge.cancelled {
+  background: #fee2e2;
+  color: #991b1b;
+}
 
 .po-progress-section {
   margin-bottom: 2rem;
@@ -105,16 +343,52 @@
 .progress-bar-fill {
   height: 100%;
   background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
-  transition: width 1s ease-in-out;
+  transition: width 1s ease-in-out, background 0.5s ease;
+}
+
+/* Dynamic colors based on detailed status */
+.progress-bar-fill.pending {
+  background: linear-gradient(90deg, #fcd34d, #f59e0b);
+}
+
+.progress-bar-fill.approved {
+  background: linear-gradient(90deg, #93c5fd, #3b82f6);
+}
+
+.progress-bar-fill.processing {
+  background: linear-gradient(90deg, #c4b5fd, #8b5cf6);
+}
+
+.progress-bar-fill.shipped {
+  background: linear-gradient(90deg, #f9a8d4, #db2777);
+}
+
+.progress-bar-fill.customs {
+  background: linear-gradient(90deg, #fca5a5, #ef4444);
+}
+
+.progress-bar-fill.local_hub {
+  background: linear-gradient(90deg, #6ee7b7, #10b981);
+}
+
+.progress-bar-fill.delivered {
+  background: linear-gradient(90deg, #86efac, #22c55e);
 }
 
 .progress-labels {
   display: flex;
   justify-content: space-between;
-  font-size: 0.75rem;
+  font-size: 0.65rem;
+  /* Slightly smaller to fit 7 labels */
   color: var(--text-secondary);
-  font-weight: 500;
+  font-weight: 600;
   text-transform: uppercase;
+}
+
+@media (max-width: 768px) {
+  .progress-labels {
+    font-size: 0.5rem;
+  }
 }
 
 .empty-state {
@@ -174,7 +448,8 @@
   font-weight: 500;
 }
 
-.loading-state, .error-state {
+.loading-state,
+.error-state {
   text-align: center;
   padding: 4rem;
   font-size: 1.2rem;

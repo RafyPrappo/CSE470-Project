@@ -1,7 +1,9 @@
 import { Link } from "react-router-dom";
+import { memo } from "react";
+import { Zap, MapPin, Phone, Mail, Clock } from "lucide-react";
 import "./Footer.css";
 
-function Footer() {
+const Footer = memo(() => {
   const currentYear = new Date().getFullYear();
   
   return (
@@ -16,7 +18,7 @@ function Footer() {
           {/* Brand Section */}
           <div className="footer-section brand-section">
             <div className="footer-brand">
-              <span className="brand-icon">⚡</span>
+              <span className="brand-icon"><Zap size={24} /></span>
               <span className="brand-text">TechAesthetics</span>
             </div>
             <p className="brand-description">
@@ -57,10 +59,10 @@ function Footer() {
           <div className="footer-section">
             <h3 className="footer-title">Connect With Us</h3>
             <ul className="contact-info">
-              <li>📍 Dhaka, Bangladesh</li>
-              <li>📞 +880 1234-567890</li>
-              <li>✉️ hello@techaesthetics.com</li>
-              <li>🕒 Mon-Fri: 9AM - 6PM</li>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><MapPin size={16} /> Dhaka, Bangladesh</li>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Phone size={16} /> +880 1234-567890</li>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Mail size={16} /> hello@techaesthetics.com</li>
+              <li style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Clock size={16} /> Mon-Fri: 9AM - 6PM</li>
             </ul>
           </div>
         </div>
@@ -93,6 +95,6 @@ function Footer() {
       </div>
     </footer>
   );
-}
+});
 
 export default Footer;

@@ -2,11 +2,14 @@ import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from "dotenv";
-import dns from 'node:dns/promises';
+import dns from "node:dns";
 import productRoutes from "./routes/productRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import preOrderRoutes from "./routes/preOrderRoutes.js";
 import shipmentRoutes from "./routes/shipmentRoutes.js";
+import categoryRoutes from "./routes/categoryRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
+import orderRoutes from "./routes/orderRoutes.js";
 
 // FORCE DNS SERVERS - ADD THIS RIGHT AFTER IMPORTS
 try {
@@ -46,13 +49,16 @@ const connectDB = async () => {
   }
 };
 
-connectDB();
+await connectDB();
 
 // Routes
 app.use("/api/products", productRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/preorders", preOrderRoutes);
 app.use("/api/shipments", shipmentRoutes);
+app.use("/api/categories", categoryRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/orders", orderRoutes);
 
 // Test route
 app.get("/", (req, res) => {

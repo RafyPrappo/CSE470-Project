@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Search, Tag, Package, Lock, AlertTriangle } from 'lucide-react';
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 import ProductCard from "../components/ProductCard";
@@ -7,6 +8,7 @@ import "./Products.css";
 
 function Products() {
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
   const [categoryFilter, setCategoryFilter] = useState("all");
@@ -26,10 +28,23 @@ function Products() {
 
   useEffect(() => {
     fetchProducts();
+    fetchCategories();
     if (isAuthenticated) {
       fetchUserPreOrders();
     }
   }, [isAuthenticated, token]);
+
+  const fetchCategories = async () => {
+    try {
+      const res = await fetch("http://localhost:5000/api/categories");
+      if (res.ok) {
+        const data = await res.json();
+        setCategories(data);
+      }
+    } catch (err) {
+      console.error("Fetch categories error:", err);
+    }
+  };
 
   const fetchProducts = async () => {
     try {
@@ -96,7 +111,7 @@ function Products() {
       if (userPreOrders[product._id]) {
         const existingPreOrder = userPreOrders[product._id];
         const newQuantity = existingPreOrder.quantity + quantity;
-        
+
         try {
           const response = await fetch(`http://localhost:5000/api/preorders/${existingPreOrder._id}/quantity`, {
             method: 'PUT',
@@ -274,7 +289,7 @@ function Products() {
   const LoginPromptModal = () => (
     <div className="modal-overlay" onClick={() => setShowLoginPrompt(false)}>
       <div className="modal-content" onClick={e => e.stopPropagation()}>
-        <div className="modal-icon">🔒</div>
+        <div className="modal-icon"><Lock size={48} /></div>
         <h3>Login Required</h3>
         <p>Please login or create an account to {promptProduct?.quantity > 0 ? 'add items to cart' : 'get notified'}</p>
         <div className="modal-actions">
@@ -304,7 +319,7 @@ function Products() {
   if (error) {
     return (
       <div className="products-error">
-        <div className="error-icon">⚠️</div>
+        <div className="error-icon"><AlertTriangle size={64} /></div>
         <h3>Oops! Something went wrong</h3>
         <p>{error}</p>
         <button className="btn-primary" onClick={fetchProducts}>
@@ -328,31 +343,55 @@ function Products() {
       </div>
 
       <div className="category-tabs" style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginBottom: '2rem', flexWrap: 'wrap' }}>
-        {['all', 'gadgets', 'cases', 'decor', 'accessories'].map(cat => (
+        <button
+          onClick={() => navigate('/products')} // Or keep setCategoryFilter('all') if you want it all on one page initially
+          style={{
+            padding: '0.6rem 2rem',
+            borderRadius: '2rem',
+            background: categoryFilter === 'all' ? 'linear-gradient(135deg, var(--primary-main), var(--primary-light))' : 'rgba(30, 41, 59, 0.5)',
+            color: categoryFilter === 'all' ? 'white' : '#94a3b8',
+            border: categoryFilter === 'all' ? 'none' : '1px solid rgba(255, 255, 255, 0.1)',
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            fontWeight: categoryFilter === 'all' ? '600' : 'normal',
+            boxShadow: categoryFilter === 'all' ? '0 4px 12px rgba(59, 130, 246, 0.25)' : 'none'
+          }}
+        >
+          All Products
+        </button>
+
+        {categories.map(cat => (
           <button
-            key={cat}
-            onClick={() => setCategoryFilter(cat)}
+            key={cat._id}
+            onClick={() => navigate(`/category/${encodeURIComponent(cat.name.toLowerCase())}`)}
             style={{
               padding: '0.6rem 2rem',
               borderRadius: '2rem',
-              background: categoryFilter === cat ? 'linear-gradient(135deg, var(--primary-main), var(--primary-light))' : 'rgba(30, 41, 59, 0.5)',
-              color: categoryFilter === cat ? 'white' : '#94a3b8',
-              border: categoryFilter === cat ? 'none' : '1px solid rgba(255, 255, 255, 0.1)',
+              background: 'rgba(30, 41, 59, 0.5)', // Not active here since we'll route away
+              color: '#94a3b8',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
               cursor: 'pointer',
               textTransform: 'capitalize',
               transition: 'all 0.2s',
-              fontWeight: categoryFilter === cat ? '600' : 'normal',
-              boxShadow: categoryFilter === cat ? '0 4px 12px rgba(59, 130, 246, 0.25)' : 'none'
+              fontWeight: 'normal',
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.color = 'white';
+              e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.color = '#94a3b8';
+              e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)';
             }}
           >
-            {cat === 'all' ? 'All Products' : cat}
+            {cat.name}
           </button>
         ))}
       </div>
 
       <div className="products-toolbar">
         <div className="search-bar">
-          <span className="search-icon">🔍</span>
+          <span className="search-icon"><Search size={18} /></span>
           <input
             type="text"
             placeholder="Search products by name..."
@@ -391,7 +430,7 @@ function Products() {
 
         {filter !== "all" && !badgeExiting && (
           <div className="filter-badge">
-            <span>🔖</span>
+            <span style={{ display: 'inline-flex', verticalAlign: 'middle', marginRight: '4px' }}><Tag size={16} /></span>
             {getActiveFilterLabel()}
           </div>
         )}
@@ -399,7 +438,7 @@ function Products() {
 
       {filteredProducts.length === 0 ? (
         <div className="no-products">
-          <div className="no-products-icon">📦</div>
+          <div className="no-products-icon"><Package size={64} /></div>
           <h3>No products found</h3>
           <p>Try adjusting your search or filter criteria</p>
           {(searchTerm || filter !== "all") && (

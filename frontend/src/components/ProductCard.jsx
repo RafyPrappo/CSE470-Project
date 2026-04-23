@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
+import { CheckCircle, AlertTriangle, XCircle, Package, RefreshCw, Truck, Plus, FileText, ShoppingCart, Zap } from "lucide-react";
 import "./ProductCard.css";
 
 function ProductCard({ product, onAddToCart, onNotify, isLoggedIn, existingPreOrder }) {
@@ -19,11 +21,11 @@ function ProductCard({ product, onAddToCart, onNotify, isLoggedIn, existingPreOr
   const getStatusBadge = () => {
     switch (status) {
       case 'low-stock':
-        return <span className="badge lowstock">⚠️ Only {product.stock} left</span>;
+        return <span className="badge lowstock" style={{display: 'flex', alignItems: 'center'}}><AlertTriangle size={14} style={{marginRight: '4px'}}/> Only {product.stock} left</span>;
       case 'out-of-stock':
-        return <span className="badge outofstock">❌ Out of Stock</span>;
+        return <span className="badge outofstock" style={{display: 'flex', alignItems: 'center'}}><XCircle size={14} style={{marginRight: '4px'}}/> Out of Stock</span>;
       default:
-        return <span className="badge instock">✅ In Stock</span>;
+        return <span className="badge instock" style={{display: 'flex', alignItems: 'center'}}><CheckCircle size={14} style={{marginRight: '4px'}}/> In Stock</span>;
     }
   };
 
@@ -31,13 +33,13 @@ function ProductCard({ product, onAddToCart, onNotify, isLoggedIn, existingPreOr
     setQuantity(prev => {
       const newValue = prev + delta;
       if (newValue < 1) return 1;
-      
+
       // For pre-orders (out of stock or explicitly marked), allow unlimited quantity
       const isPreOrderItem = product.isPreOrder || product.stock <= 0;
       if (isPreOrderItem) {
         return newValue; // No limit for pre-orders
       }
-      
+
       // For regular items, limit by available stock
       if (newValue > product.stock) return product.stock;
       return newValue;
@@ -90,7 +92,7 @@ function ProductCard({ product, onAddToCart, onNotify, isLoggedIn, existingPreOr
 
   return (
     <div className="product-card">
-      <div className="card-image-container">
+      <Link to={`/product/${product._id}`} className="card-image-container" style={{ display: 'block' }}>
         {!imageError ? (
           <img
             src={product.image || `https://via.placeholder.com/300x200/1E293B/3B82F6?text=${product.name}`}
@@ -100,15 +102,17 @@ function ProductCard({ product, onAddToCart, onNotify, isLoggedIn, existingPreOr
           />
         ) : (
           <div className="fallback-image">
-            <span>📦</span>
+            <span><Package size={32} /></span>
           </div>
         )}
 
         {getStatusBadge()}
-      </div>
+      </Link>
 
       <div className="card-content">
-        <h3 className="product-name">{product.name}</h3>
+        <Link to={`/product/${product._id}`} style={{ textDecoration: 'none' }}>
+          <h3 className="product-name">{product.name}</h3>
+        </Link>
 
         <div className="product-details">
           <div className="price-section">
@@ -133,7 +137,7 @@ function ProductCard({ product, onAddToCart, onNotify, isLoggedIn, existingPreOr
 
           {status === 'out-of-stock' && (
             <div className="restock-notice" style={{ color: '#f59e0b', fontSize: '0.85rem' }}>
-              <span>🔄 Currently Out of Stock - Available for Pre-Order</span>
+              <span style={{ display: 'flex', alignItems: 'center', gap: '4px', justifyContent: 'center' }}><RefreshCw size={14} /> Currently Out of Stock - Available for Pre-Order</span>
             </div>
           )}
         </div>
@@ -147,7 +151,7 @@ function ProductCard({ product, onAddToCart, onNotify, isLoggedIn, existingPreOr
                 </h4>
                 {product.arrivalEstimate ? (
                   <p style={{ fontSize: '0.8rem', color: '#94a3b8', marginTop: '0.5rem', marginBottom: 0 }}>
-                    <span style={{ marginRight: '0.5rem' }}>🚚</span>
+                    <span style={{ display: 'inline-flex', verticalAlign: 'middle', marginRight: '0.5rem' }}><Truck size={14} /></span>
                     Est. Delivery: <span style={{ fontWeight: '600', color: '#f8fafc' }}>
                       {new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(new Date(product.arrivalEstimate))} -
                       {new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(new Date(new Date(product.arrivalEstimate).setDate(new Date(product.arrivalEstimate).getDate() + 3)))}
@@ -166,7 +170,10 @@ function ProductCard({ product, onAddToCart, onNotify, isLoggedIn, existingPreOr
                     onClick={handleButtonClick}
                     title={!isLoggedIn ? "Login to pre-order" : ""}
                   >
-                    {existingPreOrder ? '➕ Add More' : (isLoggedIn ? 'Request Pre-order' : 'Login to Pre-order')}
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px', justifyContent: 'center' }}>
+                      {existingPreOrder && <Plus size={16} />}
+                      {existingPreOrder ? 'Add More' : (isLoggedIn ? 'Request Pre-order' : 'Login to Pre-order')}
+                    </span>
                   </button>
                   {existingPreOrder && (
                     <button
@@ -186,7 +193,7 @@ function ProductCard({ product, onAddToCart, onNotify, isLoggedIn, existingPreOr
                         window.location.href = '/my-preorders';
                       }}
                     >
-                      📝 Manage on Pre-Orders Page
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px', justifyContent: 'center' }}><FileText size={16} /> Manage on Pre-Orders Page</span>
                     </button>
                   )}
                 </div>
@@ -242,8 +249,7 @@ function ProductCard({ product, onAddToCart, onNotify, isLoggedIn, existingPreOr
               onClick={handleButtonClick}
               title={!isLoggedIn ? "Login to access options" : ""}
             >
-              <span>🛒</span>
-              {isLoggedIn ? 'Add to Cart' : 'Login to Buy'}
+              <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><ShoppingCart size={18} /> {isLoggedIn ? 'Add to Cart' : 'Login to Buy'}</span>
             </button>
           ) : (
             <div className="quantity-selector">
@@ -293,7 +299,7 @@ function ProductCard({ product, onAddToCart, onNotify, isLoggedIn, existingPreOr
 
         {status === 'low-stock' && isLoggedIn && (
           <div className="low-stock-warning">
-            <span>⚡ Hurry! Only {product.stock} left</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '4px', justifyContent: 'center' }}><Zap size={16} /> Hurry! Only {product.stock} left</span>
           </div>
         )}
       </div>

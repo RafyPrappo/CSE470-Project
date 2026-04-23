@@ -28,8 +28,11 @@ const productSchema = new mongoose.Schema({
   },
   category: {
     type: String,
-    default: "uncategorized",
-    enum: ["gadgets", "cases", "decor", "accessories", "uncategorized"],
+    default: "Uncategorized",
+  },
+  description: {
+    type: String,
+    default: "",
   },
   image: {
     type: String,

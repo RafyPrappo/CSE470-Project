@@ -44,6 +44,18 @@ const preOrderSchema = new mongoose.Schema({
       },
     },
   ],
+  courierLogs: [
+    {
+      courierName: String,
+      trackingId: String,
+      status: String,
+      timestamp: {
+        type: Date,
+        default: Date.now,
+      },
+      note: String,
+    }
+  ]
 }, { timestamps: true });
 
 // Ensure history logs the initial PENDING status on creation

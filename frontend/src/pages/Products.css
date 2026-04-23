@@ -34,6 +34,7 @@
 .gradient-text {
   background: linear-gradient(135deg, var(--primary-light), var(--accent-main));
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
@@ -55,7 +56,8 @@
   border: 1px solid rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(10px);
   position: relative;
-  min-height: 70px; /* Fixed height to prevent layout shift */
+  min-height: 70px;
+  /* Fixed height to prevent layout shift */
 }
 
 @media (max-width: 768px) {
@@ -110,7 +112,7 @@
   background: var(--gray-900);
 }
 
-.search-input:focus + .search-icon {
+.search-input:focus+.search-icon {
   color: var(--primary-light);
 }
 
@@ -149,7 +151,8 @@
   background-repeat: no-repeat;
   background-position: right 1rem center;
   background-size: 16px;
-  transform: translateZ(0); /* Hardware acceleration */
+  transform: translateZ(0);
+  /* Hardware acceleration */
   backface-visibility: hidden;
 }
 
@@ -298,6 +301,7 @@
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -309,6 +313,7 @@
     opacity: 0;
     transform: translateY(30px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -320,6 +325,7 @@
     opacity: 0;
     transform: translateX(-20px) scale(0.8);
   }
+
   100% {
     opacity: 1;
     transform: translateX(0) scale(1);
@@ -331,6 +337,7 @@
     opacity: 1;
     transform: translateX(0) scale(1);
   }
+
   100% {
     opacity: 0;
     transform: translateX(-20px) scale(0.8);
@@ -342,9 +349,11 @@
     opacity: 0;
     transform: scale(0.5);
   }
+
   50% {
     transform: scale(1.1);
   }
+
   100% {
     opacity: 1;
     transform: scale(1);
@@ -352,14 +361,22 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 @keyframes bounce {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0);
   }
+
   50% {
     transform: translateY(-10px);
   }
@@ -385,16 +402,16 @@
   .products-page {
     padding: 1rem;
   }
-  
+
   .products-grid {
     grid-template-columns: 1fr;
     gap: 1.5rem;
   }
-  
+
   .filter-dropdown-container {
     width: 100%;
   }
-  
+
   .filter-badge {
     margin-left: 0;
     width: 100%;
@@ -500,6 +517,7 @@
     opacity: 0;
     transform: translateY(30px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
