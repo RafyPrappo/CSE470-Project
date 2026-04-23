@@ -12,13 +12,7 @@ import {
   Layers, 
   Clock,
   ChevronRight,
-  ShieldCheck,
-  ShoppingCart,
-  Ship,
-  Tag,
-  XCircle,
-  FileText,
-  Printer
+  ShieldCheck
 } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
 import "./Admin.css";
@@ -745,7 +739,7 @@ function Admin() {
             className={`tab-btn ${activeTab === 'products' ? 'active' : ''}`}
             onClick={() => setActiveTab('products')}
           >
-            <Package size={18} style={{ marginRight: '8px', verticalAlign: 'middle', marginBottom: '2px' }} /> Products
+            📦 Products
           </button>
           <button
   className={`tab-btn ${activeTab === 'revenue' ? 'active' : ''}`}
@@ -757,25 +751,25 @@ function Admin() {
             className={`tab-btn ${activeTab === 'orders' ? 'active' : ''}`}
             onClick={() => setActiveTab('orders')}
           >
-            <ClipboardList size={18} style={{ marginRight: '8px', verticalAlign: 'middle', marginBottom: '2px' }} /> Order Queue
+            📋 Order Queue
           </button>
           <button
             className={`tab-btn ${activeTab === 'preorders' ? 'active' : ''}`}
             onClick={() => setActiveTab('preorders')}
           >
-            <ShoppingCart size={18} style={{ marginRight: '8px', verticalAlign: 'middle', marginBottom: '2px' }} /> Pre-Orders
+            🛒 Pre-Orders
           </button>
           <button
             className={`tab-btn ${activeTab === 'shipments' ? 'active' : ''}`}
             onClick={() => setActiveTab('shipments')}
           >
-            <Ship size={18} style={{ marginRight: '8px', verticalAlign: 'middle', marginBottom: '2px' }} /> Shipments
+            🚢 Shipments
           </button>
           <button
             className={`tab-btn ${activeTab === 'categories' ? 'active' : ''}`}
             onClick={() => setActiveTab('categories')}
           >
-            <Tag size={18} style={{ marginRight: '8px', verticalAlign: 'middle', marginBottom: '2px' }} /> Categories
+            🏷️ Categories
           </button>
         </div>
       </div>
@@ -899,11 +893,15 @@ function Admin() {
         </div>
       </div>
 
-      {/* 4. Average Order Value */}
+      {/* 4. Average Order Value - FIXED BLOCK */}
       <div className="stat-box clickable">
         <div className="stat-icon">🎯</div>
         <div className="stat-details">
-          <span className="stat-value">৳{revenueData.aov}</span>
+          <span className="stat-value">
+            {revenueData?.orderCount > 0 
+              ? `৳${(revenueData.totalRevenue / revenueData.orderCount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` 
+              : "৳0.00"}
+          </span>
           <span className="stat-label">Avg. Order Value</span>
         </div>
       </div>
@@ -911,20 +909,19 @@ function Admin() {
 
     {/* Optional: Add a simple tip or insight at the bottom */}
     <div className="alert-section" style={{ marginTop: '2rem', background: 'rgba(59, 130, 246, 0.05)', padding: '1rem', borderRadius: '12px' }}>
-       <p style={{ color: '#94a3b8', fontSize: '0.9rem', margin: 0 }}>
-         <ShieldCheck size={16} style={{ verticalAlign: 'middle', marginRight: '8px', color: '#3b82f6' }} />
-         Analytics are calculated based on <strong>Delivered</strong> orders only. Canceled or pending orders are not included in revenue.
-       </p>
+        <p style={{ color: '#94a3b8', fontSize: '0.9rem', margin: 0 }}>
+          <span style={{ verticalAlign: 'middle', marginRight: '8px', color: '#3b82f6' }}>🛡️</span>
+          Analytics are calculated based on <strong>Delivered</strong> orders only. Canceled or pending orders are not included in revenue.
+        </p>
     </div>
   </div>
 )}
-
       {/* Global Modals */}
       {showLowStockModal && (
         <div className="modal-overlay" onClick={() => setShowLowStockModal(false)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <h2><span className="header-icon" style={{ display: 'inline-flex', verticalAlign: 'middle' }}><AlertTriangle size={28} /></span> Low Stock Products ({lowStockProducts.length})</h2>
+              <h2><span className="header-icon">⚠️</span> Low Stock Products ({lowStockProducts.length})</h2>
               <button className="modal-close" onClick={() => setShowLowStockModal(false)}>×</button>
             </div>
             <div className="modal-body">
@@ -960,7 +957,7 @@ function Admin() {
         <div className="modal-overlay" onClick={() => setShowOutOfStockModal(false)}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
-              <h2><span className="header-icon" style={{ display: 'inline-flex', verticalAlign: 'middle' }}><XCircle size={28} /></span> Out of Stock Products ({outOfStockProducts.length})</h2>
+              <h2><span className="header-icon">❌</span> Out of Stock Products ({outOfStockProducts.length})</h2>
               <button className="modal-close" onClick={() => setShowOutOfStockModal(false)}>×</button>
             </div>
             <div className="modal-body">
@@ -1011,7 +1008,7 @@ function Admin() {
                 style={{ maxWidth: '800px', width: '90%' }}
             >
                 <div className="modal-header">
-                    <h2><span className="header-icon" style={{ display: 'inline-flex', verticalAlign: 'middle' }}><FileText size={28} /></span> Warehouse Dispatch Manifest</h2>
+                    <h2><span className="header-icon">📑</span> Warehouse Dispatch Manifest</h2>
                     <button className="modal-close" onClick={() => setManifestData(null)}>×</button>
                 </div>
                 <div className="modal-body">
@@ -1041,8 +1038,8 @@ function Admin() {
                 </div>
                 <div className="modal-footer">
                     <button className="btn-secondary" onClick={() => setManifestData(null)}>Close</button>
-                    <button className="submit-btn" onClick={() => window.print()} style={{ display: 'flex', alignItems: 'center' }}>
-                        <Printer size={18} style={{ marginRight: '8px' }} /> Print Manifest
+                    <button className="submit-btn" onClick={() => window.print()}>
+                        🖨️ Print Manifest
                     </button>
                 </div>
             </motion.div>
