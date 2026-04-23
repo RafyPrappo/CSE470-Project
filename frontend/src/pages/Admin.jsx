@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+
 import { 
   BarChart3, 
   Activity, 
@@ -39,6 +40,7 @@ function Admin() {
   const [editingId, setEditingId] = useState(null);
   const [editValue, setEditValue] = useState("");
   const [loading, setLoading] = useState(true);
+  const [revenueData, setRevenueData] = useState({ totalRevenue: 0, orderCount: 0 });
 
   // New State variables for Feature 4
   const [activeTab, setActiveTab] = useState("products");
@@ -188,7 +190,8 @@ function Admin() {
         fetchPreOrders(),
         fetchShipments(),
         fetchCategories(),
-        fetchOrders()
+        fetchOrders(),
+        fetchRevenue()
       ]);
     } catch (error) {
       console.error("Critical dashboard fetch failed:", error);
@@ -229,6 +232,20 @@ function Admin() {
       console.error("Error fetching products:", error);
     }
   }, []);
+
+  const fetchRevenue = useCallback(async () => {
+  try {
+    const res = await fetch("http://localhost:5000/api/orders/revenue", {
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      setRevenueData(data);
+    }
+  } catch (error) {
+    console.error("Error fetching revenue:", error);
+  }
+}, [token]);
 
   const fetchCategories = useCallback(async () => {
     try {
@@ -725,6 +742,12 @@ function Admin() {
             📦 Products
           </button>
           <button
+  className={`tab-btn ${activeTab === 'revenue' ? 'active' : ''}`}
+  onClick={() => setActiveTab('revenue')}
+>
+  💰 Revenue
+</button>
+          <button
             className={`tab-btn ${activeTab === 'orders' ? 'active' : ''}`}
             onClick={() => setActiveTab('orders')}
           >
@@ -825,6 +848,70 @@ function Admin() {
           handleDeleteCategory={handleDeleteCategory}
         />
       )}
+
+{activeTab === 'revenue' && (
+  <div className="product-list-card">
+    <div className="product-list-header">
+      <div className="product-list-title">
+        <h2>💰 Financial <span className="gradient-text">Performance</span></h2>
+      </div>
+      <div className="product-count-badge">Live Analytics</div>
+    </div>
+    
+    <div className="stats-grid">
+      {/* 1. Total Revenue */}
+      <div className="stat-box clickable total-value">
+        <div className="stat-icon">💵</div>
+        <div className="stat-details">
+          <span className="stat-value">৳{revenueData.totalRevenue.toLocaleString()}</span>
+          <span className="stat-label">Total Revenue</span>
+        </div>
+      </div>
+      
+      {/* 2. Net Profit */}
+      <div className="stat-box clickable" style={{ borderLeft: '4px solid #10b981' }}>
+        <div className="stat-icon">🍃</div>
+        <div className="stat-details">
+          <span className="stat-value" style={{ color: '#10b981' }}>
+            ৳{revenueData.totalProfit.toLocaleString()}
+          </span>
+          <div className="stat-label" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+            Net Profit 
+            <span className="profit-badge high" style={{ fontSize: '0.7rem', padding: '2px 8px' }}>
+              {revenueData.margin}% Margin
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* 3. Completed Orders */}
+      <div className="stat-box clickable">
+        <div className="stat-icon">📦</div>
+        <div className="stat-details">
+          <span className="stat-value">{revenueData.orderCount}</span>
+          <span className="stat-label">Delivered Orders</span>
+        </div>
+      </div>
+
+      {/* 4. Average Order Value */}
+      <div className="stat-box clickable">
+        <div className="stat-icon">🎯</div>
+        <div className="stat-details">
+          <span className="stat-value">৳{revenueData.aov}</span>
+          <span className="stat-label">Avg. Order Value</span>
+        </div>
+      </div>
+    </div>
+
+    {/* Optional: Add a simple tip or insight at the bottom */}
+    <div className="alert-section" style={{ marginTop: '2rem', background: 'rgba(59, 130, 246, 0.05)', padding: '1rem', borderRadius: '12px' }}>
+       <p style={{ color: '#94a3b8', fontSize: '0.9rem', margin: 0 }}>
+         <ShieldCheck size={16} style={{ verticalAlign: 'middle', marginRight: '8px', color: '#3b82f6' }} />
+         Analytics are calculated based on <strong>Delivered</strong> orders only. Canceled or pending orders are not included in revenue.
+       </p>
+    </div>
+  </div>
+)}
 
       {/* Global Modals */}
       {showLowStockModal && (

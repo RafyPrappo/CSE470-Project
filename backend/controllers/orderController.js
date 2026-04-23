@@ -193,3 +193,27 @@ export const updateOrderStatus = async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 };
+
+// @desc    Get total revenue analytics
+// @route   GET /api/orders/revenue
+export const getTotalRevenue = async (req, res) => {
+  const orders = await Order.find({ status: "DELIVERED" }).populate('items.product');
+  
+  const totalRevenue = orders.reduce((acc, order) => acc + order.totalAmount, 0);
+  
+  // Calculate profit by comparing order price to product import cost
+  const totalProfit = orders.reduce((acc, order) => {
+    const orderProfit = order.items.reduce((sum, item) => {
+      const cost = item.product?.importCost || 0;
+      return sum + (item.price - cost) * item.quantity;
+    }, 0);
+    return acc + orderProfit;
+  }, 0);
+
+  res.json({ 
+    totalRevenue, 
+    totalProfit, 
+    orderCount: orders.length,
+    margin: ((totalProfit / totalRevenue) * 100).toFixed(1) 
+  });
+};
