@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import { ShoppingBag, MapPin, Truck, Trash2, FileText } from "lucide-react";
 import "./MyPreOrders.css"; // Reuse styling for consistency
 
 function MyOrders() {
@@ -73,7 +74,7 @@ function MyOrders() {
 
             {orders.length === 0 ? (
                 <div className="empty-state">
-                    <div className="empty-state-icon">🛍️</div>
+                    <div className="empty-state-icon" style={{color: '#3b82f6', marginBottom: '1rem'}}><ShoppingBag size={64} /></div>
                     <h3>No Orders Found</h3>
                     <p>You haven't placed any standard orders yet.</p>
                 </div>
@@ -107,7 +108,7 @@ function MyOrders() {
                             <div className="po-card-body">
                                 <div className="po-info-row">
                                     <div className="po-info-item full-width">
-                                        <span className="info-label">📍 Shipping To</span>
+                                        <span className="info-label" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><MapPin size={16} /> Shipping To</span>
                                         <span className="info-value">
                                             {order.shippingAddress.label}: {order.shippingAddress.street}, {order.shippingAddress.city}
                                         </span>
@@ -150,7 +151,7 @@ function MyOrders() {
 
                                 {order.courierLogs?.length > 0 && (
                                     <div className="courier-log-section">
-                                        <span className="info-label">🚚 Tracking Details</span>
+                                        <span className="info-label" style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Truck size={16} /> Tracking Details</span>
                                         {order.courierLogs.map((log, lIdx) => (
                                             <div key={lIdx} className="courier-log-entry">
                                                 <div className="log-header">
@@ -165,12 +166,12 @@ function MyOrders() {
                             </div>
 
                             <div className="po-card-footer">
-                                <button className="invoice-btn" onClick={() => window.print()}>
-                                    📄 Download Invoice
+                                <button className="invoice-btn" onClick={() => window.print()} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                    <FileText size={18} /> Download Invoice
                                 </button>
                                 {order.status === 'PENDING' && (
-                                    <button onClick={() => cancelOrder(order._id)} className="cancel-btn">
-                                        🗑️ Cancel Order
+                                    <button onClick={() => cancelOrder(order._id)} className="cancel-btn" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                        <Trash2 size={18} /> Cancel Order
                                     </button>
                                 )}
                             </div>

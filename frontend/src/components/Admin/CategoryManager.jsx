@@ -1,4 +1,5 @@
 import React, { memo } from 'react';
+import { Tag, ClipboardList, Trash2 } from 'lucide-react';
 
 const CategoryManager = memo(({
   categoryForm,
@@ -13,7 +14,7 @@ const CategoryManager = memo(({
       {/* Add Category Form */}
       <div className="admin-card form-card">
         <div className="card-header">
-          <h2><span className="header-icon">🏷️</span> New Category</h2>
+          <h2><span className="header-icon" style={{marginRight: '8px'}}><Tag size={24} /></span> New Category</h2>
           <p className="card-description">Create a new product category</p>
         </div>
         <form onSubmit={handleCreateCategory} className="admin-form">
@@ -67,7 +68,7 @@ const CategoryManager = memo(({
       {/* Categories List */}
       <div className="admin-card">
         <div className="card-header">
-          <h2><span className="header-icon">📋</span> Active Categories</h2>
+          <h2><span className="header-icon" style={{marginRight: '8px'}}><ClipboardList size={24} /></span> Active Categories</h2>
         </div>
         <div className="product-table-container">
           <table className="product-table">
@@ -97,7 +98,7 @@ const CategoryManager = memo(({
                       onClick={() => handleDeleteCategory(c._id)}
                       title="Delete Category"
                     >
-                      🗑️
+                      <Trash2 size={18} />
                     </button>
                   </td>
                 </tr>

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { AlertTriangle } from "lucide-react";
 import "./Register.css";
 
 function Register() {
@@ -88,7 +89,7 @@ function Register() {
 
         {error && (
           <div className="error-message">
-            <span>⚠️</span>
+            <span style={{ display: 'flex', alignItems: 'center' }}><AlertTriangle size={20} /></span>
             <p>{error}</p>
           </div>
         )}

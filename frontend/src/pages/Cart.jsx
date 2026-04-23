@@ -2,8 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import { ShoppingCart, MapPin, Home, Building, Trash2, Sparkles } from 'lucide-react';
 import './Cart.css';
-
 function Cart() {
     const { cart, addToCart, removeFromCart, updateQuantity, clearCart, getCartTotal } = useCart();
     const { token } = useAuth();
@@ -246,7 +246,7 @@ function Cart() {
         return (
             <div className="cart-page empty-cart">
                 <div className="empty-cart-content">
-                    <span className="empty-icon">🛒</span>
+                    <span className="empty-icon" style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem', color: '#3b82f6' }}><ShoppingCart size={64} /></span>
                     <h2>Your cart is empty</h2>
                     <button className="primary-btn" onClick={() => navigate('/products')}>Start Shopping</button>
                     {removedItem && (
@@ -293,7 +293,7 @@ function Cart() {
                                     <button onClick={() => updateQuantity(item._id, item.cartQuantity + 1)} disabled={item.cartQuantity >= item.stock && !item.isPreOrder}>+</button>
                                 </div>
                                 <div className="item-total">৳{(item.retailPrice * item.cartQuantity).toLocaleString()}</div>
-                                <button className="remove-btn" onClick={() => handleRemoveItem(item)}>🗑️</button>
+                                <button className="remove-btn" onClick={() => handleRemoveItem(item)}><Trash2 size={18} /></button>
                             </div>
                         ))}
                     </div>
@@ -325,7 +325,7 @@ function Cart() {
                                 ) : (
                                   <>
                                     <div className="address-section-header">
-                                      <h3>📍 Select Delivery Path</h3>
+                                      <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><MapPin size={20} /> Select Delivery Path</h3>
                                       <button className="add-address-pill" onClick={() => setShowAddressForm(true)}>+ New Location</button>
                                     </div>
                 
@@ -337,8 +337,8 @@ function Cart() {
                                           onClick={() => setSelectedAddressId(addr._id)}
                                         >
                                           <div className="chip-icon">
-                                            {addr.label.toLowerCase().includes('home') ? '🏠' : 
-                                             addr.label.toLowerCase().includes('work') ? '🏢' : '📍'}
+                                            {addr.label.toLowerCase().includes('home') ? <Home size={20} /> : 
+                                             addr.label.toLowerCase().includes('work') ? <Building size={20} /> : <MapPin size={20} />}
                                           </div>
                                           <div className="chip-info">
                                             <span className="chip-label">{addr.label}</span>
@@ -363,11 +363,11 @@ function Cart() {
                     <h2>Order Summary</h2>
                     <div className="cart-progress-container">
                         <div className="progress-item">
-                            <div className="progress-header"><span>Free Shipping</span><span className={shippingFee === 0 ? 'unlocked' : ''}>{shippingFee === 0 ? '✨ Unlocked' : `৳${(freeShippingThreshold - subtotal).toLocaleString()} away`}</span></div>
+                            <div className="progress-header"><span>Free Shipping</span><span className={shippingFee === 0 ? 'unlocked' : ''}>{shippingFee === 0 ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><Sparkles size={16} /> Unlocked</span> : `৳${(freeShippingThreshold - subtotal).toLocaleString()} away`}</span></div>
                             <div className="progress-track"><div className="progress-fill shipping" style={{width: `${shippingFee === 0 ? 100 : Math.min(100, (subtotal/freeShippingThreshold)*100)}%`}}></div></div>
                         </div>
                         <div className="progress-item">
-                            <div className="progress-header"><span>10% Discount</span><span className={discountRate > 0 ? 'unlocked' : ''}>{discountRate > 0 ? '✨ Unlocked' : `৳${(discountThreshold - subtotal).toLocaleString()} away`}</span></div>
+                            <div className="progress-header"><span>10% Discount</span><span className={discountRate > 0 ? 'unlocked' : ''}>{discountRate > 0 ? <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}><Sparkles size={16} /> Unlocked</span> : `৳${(discountThreshold - subtotal).toLocaleString()} away`}</span></div>
                             <div className="progress-track"><div className="progress-fill discount" style={{width: `${discountRate > 0 ? 100 : Math.min(100, (subtotal/discountThreshold)*100)}%`}}></div></div>
                         </div>
                     </div>

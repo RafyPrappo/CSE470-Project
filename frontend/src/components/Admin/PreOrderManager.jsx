@@ -1,4 +1,5 @@
 import React, { memo } from 'react';
+import { ShoppingCart } from 'lucide-react';
 
 const PreOrderManager = memo(({ 
   preOrders, 
@@ -10,7 +11,7 @@ const PreOrderManager = memo(({
     <div className="admin-grid" style={{ gridTemplateColumns: '1fr' }}>
       <div className="admin-card">
         <div className="card-header">
-          <h2><span className="header-icon">🛒</span> Pre-Order Requests</h2>
+          <h2><span className="header-icon" style={{marginRight: '8px'}}><ShoppingCart size={24}/></span> Pre-Order Requests</h2>
           <p className="card-description">Approve customer pre-orders and assign them to shipments</p>
         </div>
 

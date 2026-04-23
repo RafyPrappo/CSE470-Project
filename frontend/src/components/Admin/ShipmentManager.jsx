@@ -1,4 +1,5 @@
 import React, { memo } from 'react';
+import { Ship, ClipboardList } from 'lucide-react';
 
 const ShipmentManager = memo(({
   shipmentForm,
@@ -12,7 +13,7 @@ const ShipmentManager = memo(({
     <div className="admin-grid" style={{ gridTemplateColumns: '1fr 2fr' }}>
       <div className="admin-card form-card">
         <div className="card-header">
-          <h2><span className="header-icon">🚢</span> New Shipment Batch</h2>
+          <h2><span className="header-icon" style={{marginRight: '8px'}}><Ship size={24}/></span> New Shipment Batch</h2>
           <p className="card-description">Register an incoming batch from China</p>
         </div>
         <form onSubmit={handleCreateShipment} className="admin-form">
@@ -69,7 +70,7 @@ const ShipmentManager = memo(({
 
       <div className="admin-card">
         <div className="card-header">
-          <h2><span className="header-icon">📋</span> Active Shipping Routes</h2>
+          <h2><span className="header-icon" style={{marginRight: '8px'}}><ClipboardList size={24}/></span> Active Shipping Routes</h2>
         </div>
         <div className="product-table-container">
           <table className="product-table">

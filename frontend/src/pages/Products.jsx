@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Search, Tag, Package, Lock, AlertTriangle } from 'lucide-react';
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 import ProductCard from "../components/ProductCard";
@@ -288,7 +289,7 @@ function Products() {
   const LoginPromptModal = () => (
     <div className="modal-overlay" onClick={() => setShowLoginPrompt(false)}>
       <div className="modal-content" onClick={e => e.stopPropagation()}>
-        <div className="modal-icon">🔒</div>
+        <div className="modal-icon"><Lock size={48} /></div>
         <h3>Login Required</h3>
         <p>Please login or create an account to {promptProduct?.quantity > 0 ? 'add items to cart' : 'get notified'}</p>
         <div className="modal-actions">
@@ -318,7 +319,7 @@ function Products() {
   if (error) {
     return (
       <div className="products-error">
-        <div className="error-icon">⚠️</div>
+        <div className="error-icon"><AlertTriangle size={64} /></div>
         <h3>Oops! Something went wrong</h3>
         <p>{error}</p>
         <button className="btn-primary" onClick={fetchProducts}>
@@ -390,7 +391,7 @@ function Products() {
 
       <div className="products-toolbar">
         <div className="search-bar">
-          <span className="search-icon">🔍</span>
+          <span className="search-icon"><Search size={18} /></span>
           <input
             type="text"
             placeholder="Search products by name..."
@@ -429,7 +430,7 @@ function Products() {
 
         {filter !== "all" && !badgeExiting && (
           <div className="filter-badge">
-            <span>🔖</span>
+            <span style={{ display: 'inline-flex', verticalAlign: 'middle', marginRight: '4px' }}><Tag size={16} /></span>
             {getActiveFilterLabel()}
           </div>
         )}
@@ -437,7 +438,7 @@ function Products() {
 
       {filteredProducts.length === 0 ? (
         <div className="no-products">
-          <div className="no-products-icon">📦</div>
+          <div className="no-products-icon"><Package size={64} /></div>
           <h3>No products found</h3>
           <p>Try adjusting your search or filter criteria</p>
           {(searchTerm || filter !== "all") && (

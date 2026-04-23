@@ -7,7 +7,9 @@ import {
   Truck, 
   ShieldCheck,
   ClipboardList,
-  Layers
+  Layers,
+  MapPin,
+  FileText
 } from "lucide-react";
 
 const OrderQueue = ({ 
@@ -27,7 +29,7 @@ const OrderQueue = ({
         <div className="admin-card">
           <div className="card-header">
             <div className="header-labels">
-                <h2><span className="header-icon">📋</span> Global Order Queue</h2>
+                <h2><span className="header-icon" style={{marginRight: '8px'}}><ClipboardList size={24} /></span> Global Order Queue</h2>
                 <div className="header-actions">
                     <button className="manifest-btn pulse-glow" onClick={generateManifest}>
                         <ClipboardList size={18} />
@@ -101,13 +103,13 @@ const OrderQueue = ({
             
             <div className="detail-content">
                 <div className="customer-box">
-                    <strong>📍 Shipping Address</strong>
+                    <strong style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><MapPin size={18} /> Shipping Address</strong>
                     <p>{selectedOrder.shippingAddress.label}: {selectedOrder.shippingAddress.street}, {selectedOrder.shippingAddress.city}</p>
                     <p>Phone: {selectedOrder.shippingAddress.phone}</p>
                 </div>
 
                 <div className="courier-input-box">
-                    <strong>🚚 Courier Tracking</strong>
+                    <strong style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Truck size={18} /> Courier Tracking</strong>
                     <form onSubmit={(e) => handleAddCourierLog(e, selectedOrder._id)}>
                       <select value={courierForm.courierName} onChange={e => setCourierForm({...courierForm, courierName: e.target.value})} className="form-input">
                           <option value="Pathao">Pathao</option>
@@ -121,7 +123,7 @@ const OrderQueue = ({
                 </div>
 
                 <div className="audit-trail-box">
-                    <strong>📜 Audit Trail</strong>
+                    <strong style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><FileText size={18} /> Audit Trail</strong>
                     <div className="mini-timeline">
                         {selectedOrder.statusHistory?.map((h, i) => (
                             <div key={i} className="timeline-dot">
