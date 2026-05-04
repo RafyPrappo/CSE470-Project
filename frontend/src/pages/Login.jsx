@@ -4,6 +4,9 @@ import { useAuth } from "../context/AuthContext";
 import { AlertTriangle } from "lucide-react";
 import "./Login.css";
 
+// This is the ONLY place where the backend URL is written
+const API_BASE = "https://techaesthetics.onrender.com";
+
 function Login() {
   const [formData, setFormData] = useState({
     email: "",
@@ -28,7 +31,7 @@ function Login() {
     setError("");
 
     try {
-      const response = await fetch("${'https://techaesthetics.onrender.com'}/api/auth/login", {
+      const response = await fetch(API_BASE + "/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData)
@@ -44,8 +47,6 @@ function Login() {
           role: data.role
         }, data.token);
 
-        alert(`Welcome back, ${data.name}!`);
-        
         if (data.role === "admin") {
           navigate("/admin");
         } else {
@@ -109,14 +110,7 @@ function Login() {
             className="login-btn"
             disabled={loading}
           >
-            {loading ? (
-              <>
-                <span className="spinner-small"></span>
-                Signing in...
-              </>
-            ) : (
-              "Sign In"
-            )}
+            {loading ? "Signing in..." : "Sign In"}
           </button>
         </form>
 
