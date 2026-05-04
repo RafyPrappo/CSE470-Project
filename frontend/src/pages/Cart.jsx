@@ -72,7 +72,7 @@ function Cart() {
             // Fetch Addresses
             if (token) {
                 try {
-                    const addrRes = await fetch("http://localhost:5000/api/users/addresses", {
+                    const addrRes = await fetch("${import.meta.env.VITE_API_URL}/api/users/addresses", {
                         headers: { "Authorization": `Bearer ${token}` }
                     });
                     if (addrRes.ok) {
@@ -125,7 +125,7 @@ function Cart() {
     const handleAddAddress = async (e) => {
         e.preventDefault();
         try {
-            const res = await fetch("http://localhost:5000/api/users/addresses", {
+            const res = await fetch("${import.meta.env.VITE_API_URL}/api/users/addresses", {
                 method: "POST",
                 headers: { 
                     "Content-Type": "application/json",
@@ -196,7 +196,7 @@ function Cart() {
         try {
             // Feature 11-14: Standard Order for regular items
             if (regularItems.length > 0) {
-                const orderRes = await fetch(`http://localhost:5000/api/orders`, {
+                const orderRes = await fetch(`${import.meta.env.VITE_API_URL}/api/orders`, {
                     method: 'POST',
                     headers: { 
                         "Content-Type": "application/json", 
@@ -221,7 +221,7 @@ function Cart() {
 
             // Pre-orders (existing logic)
             for (const item of preOrderItems) {
-                const preRes = await fetch(`http://localhost:5000/api/preorders`, {
+                const preRes = await fetch(`${import.meta.env.VITE_API_URL}/api/preorders`, {
                     method: 'POST',
                     headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
                     body: JSON.stringify({ productId: item._id, quantity: item.cartQuantity }),
