@@ -34,7 +34,7 @@ function CategoryPage() {
 
     const fetchCategoryInfo = async () => {
         try {
-            const res = await fetch(`'https://techaesthetics.onrender.com'/api/categories/${encodeURIComponent(categoryName)}`);
+            const res = await fetch(`https://techaesthetics.onrender.com/api/categories/${encodeURIComponent(categoryName)}`);
             if (res.ok) {
                 setCategoryInfo(await res.json());
             }
@@ -46,7 +46,7 @@ function CategoryPage() {
     const fetchProductsByCategory = async () => {
         try {
             setLoading(true);
-            const res = await fetch("'https://techaesthetics.onrender.com'/api/products/");
+            const res = await fetch("https://techaesthetics.onrender.com/api/products/");
             if (!res.ok) throw new Error('Failed to fetch products');
 
             const allProducts = await res.json();
@@ -69,7 +69,7 @@ function CategoryPage() {
     const fetchUserPreOrders = async () => {
         if (!isAuthenticated || !token) return;
         try {
-            const res = await fetch("'https://techaesthetics.onrender.com'/api/preorders/my", {
+            const res = await fetch("https://techaesthetics.onrender.com/api/preorders/my", {
                 headers: { "Authorization": `Bearer ${token}` }
             });
             if (res.ok) {
@@ -107,7 +107,7 @@ function CategoryPage() {
                 const newQuantity = existingPreOrder.quantity + quantity;
 
                 try {
-                    const response = await fetch(`'https://techaesthetics.onrender.com'/api/preorders/${existingPreOrder._id}`, {
+                    const response = await fetch(`https://techaesthetics.onrender.com/api/preorders/${existingPreOrder._id}`, {
                         method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json',
@@ -136,7 +136,7 @@ function CategoryPage() {
             }
 
             try {
-                const response = await fetch(`'https://techaesthetics.onrender.com'/api/preorders`, {
+                const response = await fetch(`https://techaesthetics.onrender.com/api/preorders`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

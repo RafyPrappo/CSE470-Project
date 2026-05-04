@@ -12,7 +12,7 @@ function Categories() {
 
     const fetchCategories = async () => {
         try {
-            const res = await fetch("'https://techaesthetics.onrender.com'/api/categories");
+            const res = await fetch("https://techaesthetics.onrender.com/api/categories");
             if (res.ok) {
                 setCategories(await res.json());
             }

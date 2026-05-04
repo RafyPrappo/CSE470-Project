@@ -24,7 +24,7 @@ function ProductDetails() {
     const fetchProduct = async () => {
         try {
             setLoading(true);
-            const res = await fetch(`http://localhost:5000/api/products/${id}`);
+            const res = await fetch(`https://techaesthetics.onrender.com/api/products/${id}`);
             if (!res.ok) throw new Error("Product not found");
             const data = await res.json();
             setProduct(data);
@@ -64,7 +64,7 @@ function ProductDetails() {
         try {
             if (isPreOrderRequest) {
                 // Pre-order flow
-                const response = await fetch("'https://techaesthetics.onrender.com'/api/preorders", {
+                const response = await fetch("https://techaesthetics.onrender.com/api/preorders", {
                     method: 'POST',
                     headers: {
                         "Content-Type": "application/json",

@@ -18,7 +18,7 @@ function MyOrders() {
     const fetchOrders = async () => {
         try {
             setLoading(true);
-            const res = await fetch("'https://techaesthetics.onrender.com'/api/orders/my", {
+            const res = await fetch("https://techaesthetics.onrender.com/api/orders/my", {
                 headers: { "Authorization": `Bearer ${token}` }
             });
             if (!res.ok) throw new Error("Failed to fetch orders");
@@ -36,7 +36,7 @@ function MyOrders() {
         if (!confirm("Are you sure you want to cancel this order? Stock will be returned to inventory.")) return;
 
         try {
-            const res = await fetch(`http://localhost:5000/api/orders/${id}`, {
+            const res = await fetch(`https://techaesthetics.onrender.com/api/orders/${id}`, {
                 method: 'DELETE',
                 headers: { "Authorization": `Bearer ${token}` }
             });

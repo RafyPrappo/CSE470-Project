@@ -113,7 +113,7 @@ function Products() {
         const newQuantity = existingPreOrder.quantity + quantity;
 
         try {
-          const response = await fetch(`http://localhost:5000/api/preorders/${existingPreOrder._id}/quantity`, {
+          const response = await fetch(`https://techaesthetics.onrender.com/api/preorders/${existingPreOrder._id}/quantity`, {
             method: 'PUT',
             headers: {
               "Content-Type": "application/json",
