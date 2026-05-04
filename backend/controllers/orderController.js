@@ -1,6 +1,6 @@
 import Order from "../models/Order.js";
 import Product from "../models/Product.js";
-import PreOrder from "../models/PreOrder.js";
+import User from "../models/User.js";
 
 // @desc    Create a new order (standard checkout)
 // @route   POST /api/orders
@@ -82,7 +82,6 @@ export const getMyOrders = async (req, res) => {
 // @route   GET /api/orders
 export const getActiveOrders = async (req, res) => {
   try {
-    // Return pending and processing orders
     const orders = await Order.find({ status: { $in: ["PENDING", "PROCESSING", "SHIPPED"] } })
       .populate("user", "name email")
       .sort({ createdAt: 1 }); // Oldest first
@@ -101,7 +100,6 @@ export const cancelOrder = async (req, res) => {
 
     if (!order) return res.status(404).json({ error: "Order not found" });
 
-    // Ensure only PENDING orders can be cancelled directly by users
     if (order.status !== "PENDING" && req.user.role !== "admin") {
       return res.status(400).json({ error: "Cannot cancel an order that is already processing or shipped" });
     }
@@ -111,7 +109,7 @@ export const cancelOrder = async (req, res) => {
       const product = await Product.findById(item.product);
       if (product) {
         product.stock += item.quantity;
-        product.outOfStockSince = null; // reset if restocked
+        product.outOfStockSince = null;
         await product.save();
       }
     }
@@ -147,7 +145,6 @@ export const addCourierLog = async (req, res) => {
       timestamp: Date.now()
     });
     
-    // Automatically update status to SHIPPED if it isn't
     if (order.status !== "SHIPPED") {
       order.status = "SHIPPED";
       order.statusHistory.push({
@@ -165,7 +162,7 @@ export const addCourierLog = async (req, res) => {
   }
 };
 
-// @desc    Update order status
+// @desc    Update order status (and credit loyalty points when delivered)
 // @route   PUT /api/orders/:id/status
 export const updateOrderStatus = async (req, res) => {
   try {
@@ -173,17 +170,37 @@ export const updateOrderStatus = async (req, res) => {
     const order = await Order.findById(req.params.id);
     if (!order) return res.status(404).json({ error: "Order not found" });
 
+    const previousStatus = order.status;
+
     if (status) {
-        order.status = status;
-        order.statusHistory.push({
-            status,
-            timestamp: Date.now(),
-            note: note || "Status updated by admin"
-        });
+      order.status = status;
+      order.statusHistory.push({
+        status,
+        timestamp: Date.now(),
+        note: note || "Status updated by admin"
+      });
     }
     
     if (priority) {
-        order.priority = priority;
+      order.priority = priority;
+    }
+
+    // **** NEW: Loyalty points credit on delivery ****
+    if (status === 'DELIVERED' && previousStatus !== 'DELIVERED') {
+      const user = await User.findById(order.user);
+      if (user) {
+        const pointsEarned = Math.floor(order.totalAmount / 100); // 1 point per ৳100
+        user.loyaltyPoints += pointsEarned;
+        user.totalSpent += order.totalAmount;
+        
+        // Auto‑recalculate membership tier
+        if (user.loyaltyPoints >= 10000) user.membershipTier = 'Platinum';
+        else if (user.loyaltyPoints >= 5000) user.membershipTier = 'Gold';
+        else if (user.loyaltyPoints >= 2000) user.membershipTier = 'Silver';
+        else user.membershipTier = 'Basic';
+        
+        await user.save();
+      }
     }
 
     await order.save();
@@ -194,26 +211,103 @@ export const updateOrderStatus = async (req, res) => {
   }
 };
 
-// @desc    Get total revenue analytics
-// @route   GET /api/orders/revenue
+// @desc    Get total revenue analytics (with date range & grouping)
+// @route   GET /api/orders/revenue?startDate=&endDate=&groupBy=day|month|none
 export const getTotalRevenue = async (req, res) => {
-  const orders = await Order.find({ status: "DELIVERED" }).populate('items.product');
-  
-  const totalRevenue = orders.reduce((acc, order) => acc + order.totalAmount, 0);
-  
-  // Calculate profit by comparing order price to product import cost
-  const totalProfit = orders.reduce((acc, order) => {
-    const orderProfit = order.items.reduce((sum, item) => {
-      const cost = item.product?.importCost || 0;
-      return sum + (item.price - cost) * item.quantity;
-    }, 0);
-    return acc + orderProfit;
-  }, 0);
+  try {
+    const { startDate, endDate, groupBy } = req.query;
 
-  res.json({ 
-    totalRevenue, 
-    totalProfit, 
-    orderCount: orders.length,
-    margin: ((totalProfit / totalRevenue) * 100).toFixed(1) 
-  });
+    const filter = { status: "DELIVERED" };
+    if (startDate || endDate) {
+      filter.createdAt = {};
+      if (startDate) filter.createdAt.$gte = new Date(startDate);
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        filter.createdAt.$lte = end;
+      }
+    }
+
+    // Grouped aggregation (day / month)
+    if (groupBy === 'day' || groupBy === 'month') {
+      const groupId = groupBy === 'day'
+        ? { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } }
+        : { $dateToString: { format: "%Y-%m", date: "$createdAt" } };
+
+      const pipeline = [
+        { $match: filter },
+        { $unwind: "$items" },
+        {
+          $lookup: {
+            from: "products",
+            localField: "items.product",
+            foreignField: "_id",
+            as: "productInfo"
+          }
+        },
+        { $unwind: { path: "$productInfo", preserveNullAndEmptyArrays: true } },
+        {
+          $addFields: {
+            itemProfit: {
+              $multiply: [
+                { $subtract: ["$items.price", { $ifNull: ["$productInfo.importCost", 0] }] },
+                "$items.quantity"
+              ]
+            }
+          }
+        },
+        {
+          $group: {
+            _id: { orderId: "$_id", period: groupId },
+            orderTotal: { $first: "$totalAmount" },
+            orderProfit: { $sum: "$itemProfit" }
+          }
+        },
+        {
+          $group: {
+            _id: "$_id.period",
+            totalRevenue: { $sum: "$orderTotal" },
+            totalProfit: { $sum: "$orderProfit" },
+            orderCount: { $sum: 1 }
+          }
+        },
+        {
+          $project: {
+            _id: 0,
+            period: "$_id",
+            totalRevenue: 1,
+            totalProfit: 1,
+            orderCount: 1
+          }
+        },
+        { $sort: { period: 1 } }
+      ];
+
+      const aggregated = await Order.aggregate(pipeline);
+      return res.json(aggregated);
+    }
+
+    // No grouping – simple totals
+    const orders = await Order.find(filter).populate('items.product');
+    
+    const totalRevenue = orders.reduce((acc, order) => acc + order.totalAmount, 0);
+    
+    const totalProfit = orders.reduce((acc, order) => {
+      const orderProfit = order.items.reduce((sum, item) => {
+        const cost = item.product?.importCost || 0;
+        return sum + (item.price - cost) * item.quantity;
+      }, 0);
+      return acc + orderProfit;
+    }, 0);
+
+    res.json({ 
+      totalRevenue, 
+      totalProfit, 
+      orderCount: orders.length,
+      margin: totalRevenue > 0 ? ((totalProfit / totalRevenue) * 100).toFixed(1) : '0.0'
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Server error" });
+  }
 };

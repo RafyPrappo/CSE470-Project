@@ -33,6 +33,20 @@ const userSchema = new mongoose.Schema({
     enum: ["user", "admin"],
     default: "user"
   },
+  // New fields for membership
+  membershipTier: {
+    type: String,
+    enum: ["Basic", "Silver", "Gold", "Platinum"],
+    default: "Basic"
+  },
+  loyaltyPoints: {
+    type: Number,
+    default: 0
+  },
+  totalSpent: {
+    type: Number,
+    default: 0
+  },
   isFirstUser: {
     type: Boolean,
     default: false
@@ -69,6 +83,18 @@ userSchema.statics.isFirstUser = async function() {
   const count = await this.countDocuments();
   return count === 0;
 };
+
+// Virtual: auto‑calculate membership from loyaltyPoints
+userSchema.virtual('calculatedMembership').get(function() {
+  if (this.loyaltyPoints >= 10000) return 'Platinum';
+  if (this.loyaltyPoints >= 5000) return 'Gold';
+  if (this.loyaltyPoints >= 2000) return 'Silver';
+  return 'Basic';
+});
+
+// Ensure virtuals are included in JSON
+userSchema.set('toJSON', { virtuals: true });
+userSchema.set('toObject', { virtuals: true });
 
 const User = mongoose.model("User", userSchema);
 export default User;
