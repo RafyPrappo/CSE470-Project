@@ -27,11 +27,13 @@
 }
 
 .status-filter select {
-  padding: 0.4rem 0.6rem;
-  border-radius: 0.25rem;
-  border: 1px solid var(--border-color);
-  background: var(--surface-light);
-  color: var(--text-primary);
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  padding: 0.5rem 2rem 0.5rem 0.75rem;
+  background-repeat: no-repeat;
+  background-position: right 0.5rem center;
+  background-size: 1rem;
 }
 
 .status-filter select option {
