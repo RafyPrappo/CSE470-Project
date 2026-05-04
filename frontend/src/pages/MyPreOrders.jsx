@@ -26,7 +26,7 @@ function MyPreOrders() {
     const fetchPreOrders = async () => {
         try {
             setLoading(true);
-            const res = await fetch("${import.meta.env.VITE_API_URL}/api/preorders/my", {
+            const res = await fetch("${'https://techaesthetics.onrender.com'}/api/preorders/my", {
                 headers: {
                     "Authorization": `Bearer ${token}`
                 }
