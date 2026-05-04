@@ -34,6 +34,11 @@
   color: var(--text-primary);
 }
 
+.status-filter select option {
+  background: #1e293b;
+  color: #f8fafc;
+}
+
 .preorders-list {
   display: grid;
   gap: 2rem;
