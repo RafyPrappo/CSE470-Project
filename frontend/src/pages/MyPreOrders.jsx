@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { Package, Truck, Trash2, XCircle, AlertTriangle } from "lucide-react";
 import "./MyPreOrders.css";
-
+const API = "https://techaesthetics.onrender.com";
 function MyPreOrders() {
     const [preOrders, setPreOrders] = useState([]);
     const [loading, setLoading] = useState(true);

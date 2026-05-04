@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { AlertTriangle } from "lucide-react";
 import "./Login.css";
-
+const API = "https://techaesthetics.onrender.com";
 // This is the ONLY place where the backend URL is written
 const API_BASE = "https://techaesthetics.onrender.com";
 

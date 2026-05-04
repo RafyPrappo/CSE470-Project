@@ -4,6 +4,7 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { ShoppingCart, MapPin, Home, Building, Trash2, Sparkles } from 'lucide-react';
 import './Cart.css';
+const API = "https://techaesthetics.onrender.com";
 function Cart() {
     const { cart, addToCart, removeFromCart, updateQuantity, clearCart, getCartTotal } = useCart();
     const { token } = useAuth();

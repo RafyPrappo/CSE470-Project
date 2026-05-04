@@ -54,6 +54,7 @@ import ProductManager from "../components/Admin/ProductManager";
 import PreOrderManager from "../components/Admin/PreOrderManager";
 import ShipmentManager from "../components/Admin/ShipmentManager";
 import CategoryManager from "../components/Admin/CategoryManager";
+const API = "https://techaesthetics.onrender.com";
 
 // Custom tooltip to prevent stuttering
 const CustomTooltip = ({ active, payload, label }) => {

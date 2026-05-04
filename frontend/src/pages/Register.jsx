@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { AlertTriangle } from "lucide-react";
 import "./Register.css";
-
+const API = "https://techaesthetics.onrender.com";
 function Register() {
   const [formData, setFormData] = useState({
     name: "",

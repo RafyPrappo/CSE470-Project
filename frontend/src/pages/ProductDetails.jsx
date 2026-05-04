@@ -4,7 +4,7 @@ import { CheckCircle, AlertTriangle, XCircle, ShoppingCart } from "lucide-react"
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 import "./ProductDetails.css";
-
+const API = "https://techaesthetics.onrender.com";
 function ProductDetails() {
     const { id } = useParams();
     const navigate = useNavigate();

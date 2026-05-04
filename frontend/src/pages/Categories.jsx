@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import "./Products.css"; // Reuse general layout styles
-
+const API = "https://techaesthetics.onrender.com";
 function Categories() {
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);

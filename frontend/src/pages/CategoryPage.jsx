@@ -5,7 +5,7 @@ import { useCart } from "../context/CartContext";
 import { Search, Tag, Package, Lock, AlertTriangle } from "lucide-react";
 import ProductCard from "../components/ProductCard";
 import "./Products.css"; // We'll reuse the Products styling for the grid
-
+const API = "https://techaesthetics.onrender.com";
 function CategoryPage() {
     const { categoryName } = useParams();
     const [products, setProducts] = useState([]);
