@@ -73,7 +73,7 @@ function Cart() {
             // Fetch Addresses
             if (token) {
                 try {
-                    const addrRes = await fetch("${'https://techaesthetics.onrender.com'}/api/users/addresses", {
+                    const addrRes = await fetch("'https://techaesthetics.onrender.com'/api/users/addresses", {
                         headers: { "Authorization": `Bearer ${token}` }
                     });
                     if (addrRes.ok) {
@@ -126,7 +126,7 @@ function Cart() {
     const handleAddAddress = async (e) => {
         e.preventDefault();
         try {
-            const res = await fetch("${'https://techaesthetics.onrender.com'}/api/users/addresses", {
+            const res = await fetch("'https://techaesthetics.onrender.com'/api/users/addresses", {
                 method: "POST",
                 headers: { 
                     "Content-Type": "application/json",
@@ -197,7 +197,7 @@ function Cart() {
         try {
             // Feature 11-14: Standard Order for regular items
             if (regularItems.length > 0) {
-                const orderRes = await fetch(`${'https://techaesthetics.onrender.com'}/api/orders`, {
+                const orderRes = await fetch(`'https://techaesthetics.onrender.com'/api/orders`, {
                     method: 'POST',
                     headers: { 
                         "Content-Type": "application/json", 
@@ -222,7 +222,7 @@ function Cart() {
 
             // Pre-orders (existing logic)
             for (const item of preOrderItems) {
-                const preRes = await fetch(`${'https://techaesthetics.onrender.com'}/api/preorders`, {
+                const preRes = await fetch(`'https://techaesthetics.onrender.com'/api/preorders`, {
                     method: 'POST',
                     headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
                     body: JSON.stringify({ productId: item._id, quantity: item.cartQuantity }),

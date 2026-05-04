@@ -18,7 +18,7 @@ function MyOrders() {
     const fetchOrders = async () => {
         try {
             setLoading(true);
-            const res = await fetch("${'https://techaesthetics.onrender.com'}/api/orders/my", {
+            const res = await fetch("'https://techaesthetics.onrender.com'/api/orders/my", {
                 headers: { "Authorization": `Bearer ${token}` }
             });
             if (!res.ok) throw new Error("Failed to fetch orders");

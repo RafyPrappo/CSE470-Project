@@ -64,7 +64,7 @@ function ProductDetails() {
         try {
             if (isPreOrderRequest) {
                 // Pre-order flow
-                const response = await fetch("${'https://techaesthetics.onrender.com'}/api/preorders", {
+                const response = await fetch("'https://techaesthetics.onrender.com'/api/preorders", {
                     method: 'POST',
                     headers: {
                         "Content-Type": "application/json",

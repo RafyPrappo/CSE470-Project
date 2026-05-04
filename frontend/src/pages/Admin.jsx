@@ -206,7 +206,7 @@ function Admin() {
   // ========== Individual fetch functions ==========
   const fetchOrders = useCallback(async () => {
     try {
-      const res = await fetch("${'https://techaesthetics.onrender.com'}/api/orders", {
+      const res = await fetch("'https://techaesthetics.onrender.com'/api/orders", {
         headers: { "Authorization": `Bearer ${token}` }
       });
       if (res.ok) {
@@ -221,7 +221,7 @@ function Admin() {
 
   const fetchProducts = useCallback(async () => {
     try {
-      const res = await fetch("${'https://techaesthetics.onrender.com'}/api/products/");
+      const res = await fetch("'https://techaesthetics.onrender.com'/api/products/");
       const data = await res.json();
       setProducts(data);
     } catch (error) {
@@ -272,7 +272,7 @@ function Admin() {
 
   const fetchCategories = useCallback(async () => {
     try {
-      const res = await fetch("${'https://techaesthetics.onrender.com'}/api/categories");
+      const res = await fetch("'https://techaesthetics.onrender.com'/api/categories");
       if (res.ok) setCategories(await res.json());
     } catch (error) {
       console.error("Error fetching categories:", error);
@@ -281,7 +281,7 @@ function Admin() {
 
   const fetchPreOrders = useCallback(async () => {
     try {
-      const res = await fetch("${'https://techaesthetics.onrender.com'}/api/preorders", {
+      const res = await fetch("'https://techaesthetics.onrender.com'/api/preorders", {
         headers: { "Authorization": `Bearer ${token}` }
       });
       if (res.ok) setPreOrders(await res.json());
@@ -292,7 +292,7 @@ function Admin() {
 
   const fetchShipments = useCallback(async () => {
     try {
-      const res = await fetch("${'https://techaesthetics.onrender.com'}/api/shipments", {
+      const res = await fetch("'https://techaesthetics.onrender.com'/api/shipments", {
         headers: { "Authorization": `Bearer ${token}` }
       });
       if (res.ok) setShipments(await res.json());
@@ -304,7 +304,7 @@ function Admin() {
   const fetchMembershipStats = useCallback(async () => {
     try {
       setMembershipLoading(true);
-      const res = await fetch("${'https://techaesthetics.onrender.com'}/api/users/members/all", {
+      const res = await fetch("'https://techaesthetics.onrender.com'/api/users/members/all", {
         headers: { "Authorization": `Bearer ${token}` }
       });
       if (res.ok) {
@@ -473,7 +473,7 @@ function Admin() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const response = await fetch("${'https://techaesthetics.onrender.com'}/api/products/add", {
+      const response = await fetch("'https://techaesthetics.onrender.com'/api/products/add", {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         body: JSON.stringify(form),
@@ -496,7 +496,7 @@ function Admin() {
   const handleCreateShipment = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch("${'https://techaesthetics.onrender.com'}/api/shipments", {
+      const res = await fetch("'https://techaesthetics.onrender.com'/api/shipments", {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         body: JSON.stringify(shipmentForm)
@@ -515,7 +515,7 @@ function Admin() {
   const handleCreateCategory = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch("${'https://techaesthetics.onrender.com'}/api/categories/add", {
+      const res = await fetch("'https://techaesthetics.onrender.com'/api/categories/add", {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         body: JSON.stringify(categoryForm)
@@ -534,7 +534,7 @@ function Admin() {
   const handleDeleteCategory = async (id) => {
     if (!window.confirm("Are you sure you want to delete this category?")) return;
     try {
-      const res = await fetch(`${'https://techaesthetics.onrender.com'}/api/categories/${id}`, {
+      const res = await fetch(`'https://techaesthetics.onrender.com'/api/categories/${id}`, {
         method: "DELETE",
         headers: { "Authorization": `Bearer ${token}` }
       });
@@ -546,7 +546,7 @@ function Admin() {
     try {
       const payload = { status };
       if (shipmentId !== undefined) payload.shipmentId = shipmentId;
-      const res = await fetch(`${'https://techaesthetics.onrender.com'}/api/preorders/${id}`, {
+      const res = await fetch(`'https://techaesthetics.onrender.com'/api/preorders/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         body: JSON.stringify(payload)
@@ -561,7 +561,7 @@ function Admin() {
 
   const linkPreOrderToShipment = async (id, shipmentId) => {
     try {
-      const res = await fetch(`${'https://techaesthetics.onrender.com'}/api/preorders/${id}`, {
+      const res = await fetch(`'https://techaesthetics.onrender.com'/api/preorders/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         body: JSON.stringify({ shipmentId, status: 'SHIPPED' })
@@ -575,7 +575,7 @@ function Admin() {
 
   const updateShipmentETA = async (id, newDate) => {
     try {
-      const res = await fetch(`${'https://techaesthetics.onrender.com'}/api/shipments/${id}`, {
+      const res = await fetch(`'https://techaesthetics.onrender.com'/api/shipments/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         body: JSON.stringify({ baseEstimatedArrival: newDate })
@@ -589,7 +589,7 @@ function Admin() {
       const body = { note };
       if (status) body.status = status;
       if (priority) body.priority = priority;
-      const res = await fetch(`${'https://techaesthetics.onrender.com'}/api/orders/${id}/status`, {
+      const res = await fetch(`'https://techaesthetics.onrender.com'/api/orders/${id}/status`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         body: JSON.stringify(body)
@@ -630,7 +630,7 @@ function Admin() {
 
   const updateShipmentStatus = async (id, newStatus) => {
     try {
-      const res = await fetch(`${'https://techaesthetics.onrender.com'}/api/shipments/${id}`, {
+      const res = await fetch(`'https://techaesthetics.onrender.com'/api/shipments/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         body: JSON.stringify({ status: newStatus })
@@ -641,7 +641,7 @@ function Admin() {
 
   const handleStockUpdate = async (productId, newStock) => {
     try {
-      const response = await fetch(`${'https://techaesthetics.onrender.com'}/api/products/${productId}/stock`, {
+      const response = await fetch(`'https://techaesthetics.onrender.com'/api/products/${productId}/stock`, {
         method: 'PUT',
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         body: JSON.stringify({ stock: newStock }),
@@ -660,7 +660,7 @@ function Admin() {
   const handleDelete = async (productId) => {
     if (!confirm("Are you sure you want to delete this product?")) return;
     try {
-      const response = await fetch(`${'https://techaesthetics.onrender.com'}/api/products/${productId}`, {
+      const response = await fetch(`'https://techaesthetics.onrender.com'/api/products/${productId}`, {
         method: 'DELETE',
         headers: { "Authorization": `Bearer ${token}` }
       });
