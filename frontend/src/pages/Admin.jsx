@@ -199,6 +199,10 @@ function Admin() {
   const [membershipUsers, setMembershipUsers] = useState([]);
   const [membershipLoading, setMembershipLoading] = useState(false);
 
+  // ---------- NEW: Inline edit for membership points ----------
+  const [editingMemberId, setEditingMemberId] = useState(null);
+  const [editingMemberPoints, setEditingMemberPoints] = useState("");
+
   const { user, isAdmin, token } = useAuth();
   const navigate = useNavigate();
 
@@ -668,6 +672,26 @@ function Admin() {
     } catch (error) { showNotification("Failed to delete product: " + error.message, "error"); }
   };
 
+  // ---------- Membership inline-edit handler ----------
+  const handleMembershipPointsUpdate = async (userId) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/users/membership/${userId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+        body: JSON.stringify({ loyaltyPoints: parseInt(editingMemberPoints) })
+      });
+      if (res.ok) {
+        showNotification("Points updated successfully", "success");
+        setEditingMemberId(null);
+        fetchMembershipStats();
+      } else {
+        showNotification("Failed to update points", "error");
+      }
+    } catch (err) {
+      showNotification("Failed to update points", "error");
+    }
+  };
+
   const showNotification = (message, type = "success") => {
     const id = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     setToasts(prev => [...prev, { id, message, type }]);
@@ -802,7 +826,6 @@ function Admin() {
                 <option value="day">Daily Breakdown</option>
                 <option value="month">Monthly Breakdown</option>
               </select>
-              {/* Export Button */}
               <button
                 onClick={handleExportRevenue}
                 style={{
@@ -907,16 +930,46 @@ function Admin() {
                         <td style={{ color: '#10b981', fontSize: '0.85rem' }}>
                           {nextTierInfo ? `${nextTierInfo.pointsNeeded.toLocaleString()} pts to ${nextTierInfo.tier}` : 'Max Tier'}
                         </td>
+                        {/* ---------- Inline edit for points ---------- */}
                         <td>
-                          <button className="action-btn edit-btn" onClick={() => {
-                            const newPoints = prompt('Set new point balance:', member.loyaltyPoints);
-                            if (!newPoints) return;
-                            fetch(`http://localhost:5000/api/users/membership/${member._id}`, {
-                              method: "PUT",
-                              headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-                              body: JSON.stringify({ loyaltyPoints: parseInt(newPoints) })
-                            }).then(() => fetchMembershipStats());
-                          }}>Edit Points</button>
+                          {editingMemberId === member._id ? (
+                            <div className="stock-editor" style={{ minWidth: '100px' }}>
+                              <input
+                                type="number"
+                                min="0"
+                                value={editingMemberPoints}
+                                onChange={(e) => setEditingMemberPoints(e.target.value)}
+                                className="stock-editor-input"
+                                autoFocus
+                                onKeyPress={(e) => {
+                                  if (e.key === 'Enter') {
+                                    handleMembershipPointsUpdate(member._id);
+                                  }
+                                }}
+                              />
+                              <button
+                                onClick={() => handleMembershipPointsUpdate(member._id)}
+                                className="stock-editor-btn confirm"
+                                title="Confirm"
+                              >
+                                ✓
+                              </button>
+                              <button
+                                onClick={() => setEditingMemberId(null)}
+                                className="stock-editor-btn cancel"
+                                title="Cancel"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          ) : (
+                            <button className="action-btn edit-btn" onClick={() => {
+                              setEditingMemberId(member._id);
+                              setEditingMemberPoints(member.loyaltyPoints);
+                            }}>
+                              Edit Points
+                            </button>
+                          )}
                         </td>
                       </tr>
                     );

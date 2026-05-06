@@ -5,7 +5,6 @@ import { useCart } from "../context/CartContext";
 import { Zap, Star, Crown, Award } from "lucide-react";
 import "./Navbar.css";
 
-// Lightweight tier icon / colour map
 const tierDetails = {
   Basic:   { icon: null,  color: '#94a3b8' },
   Silver:  { icon: Star,  color: '#9ca3af' },
@@ -33,10 +32,11 @@ const Navbar = memo(() => {
     window.location.href = "/";
   };
 
+  // All Products hidden for admins to keep navigation clean
   const navLinks = [
     { path: "/", label: "Home" },
     { path: "/categories", label: "Categories" },
-    { path: "/products", label: "All Products" },
+    ...(isAdmin ? [] : [{ path: "/products", label: "All Products" }]),
     ...(isAuthenticated && !isAdmin
       ? [
           { path: "/my-orders", label: "My Orders" },

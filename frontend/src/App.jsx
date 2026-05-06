@@ -1,11 +1,11 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { lazy, Suspense } from "react";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { lazy, Suspense, useEffect } from "react";
 import { AuthProvider } from "./context/AuthContext";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import "./App.css";
 
-// Lazy-loaded pages for performance
+// Lazy-loaded pages
 const Home = lazy(() => import("./pages/Home"));
 const Products = lazy(() => import("./pages/Products"));
 const Admin = lazy(() => import("./pages/Admin"));
@@ -18,7 +18,16 @@ const ProductDetails = lazy(() => import("./pages/ProductDetails"));
 const CategoryPage = lazy(() => import("./pages/CategoryPage"));
 const Categories = lazy(() => import("./pages/Categories"));
 
-// Loading fallback component
+// ---------- Scroll to top on every navigation ----------
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+}
+
+// Loading fallback
 const PageLoader = () => (
   <div className="page-loader-container">
     <div className="loading-spinner"></div>
@@ -26,48 +35,38 @@ const PageLoader = () => (
   </div>
 );
 
-// Protected Route Component for Admin
+// ---------- Route Guards ----------
+import { useAuth } from "./context/AuthContext";
+import { CartProvider } from "./context/CartContext";
+
 const AdminRoute = ({ children }) => {
   const { user, loading } = useAuth();
-
-  if (loading) {
-    return <div className="loading-spinner"></div>;
-  }
-
+  if (loading) return <div className="loading-spinner"></div>;
   return user?.role === "admin" ? children : <Navigate to="/products" />;
 };
 
-// Protected Route Component for Authenticated Users
 const AuthRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
-
-  if (loading) {
-    return <div className="loading-spinner"></div>;
-  }
-
+  if (loading) return <div className="loading-spinner"></div>;
   return isAuthenticated ? children : <Navigate to="/login" />;
 };
 
-// Public Route (redirects to products if already logged in)
 const PublicRoute = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth();
-
-  if (loading) {
-    return <div className="loading-spinner"></div>;
+  const { isAuthenticated, user, loading } = useAuth();
+  if (loading) return <div className="loading-spinner"></div>;
+  // If logged in, redirect admin → /admin, regular user → /products
+  if (isAuthenticated) {
+    return user?.role === "admin" ? <Navigate to="/admin" /> : <Navigate to="/products" />;
   }
-
-  return !isAuthenticated ? children : <Navigate to="/products" />;
+  return children;
 };
-
-// Import useAuth here since we're using it in the route components
-import { useAuth } from "./context/AuthContext";
-import { CartProvider } from "./context/CartContext";
 
 function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
         <CartProvider>
+          <ScrollToTop />
           <div className="app-container">
             <Navbar />
             <main className="main-content">
@@ -79,43 +78,18 @@ function App() {
                   <Route path="/product/:id" element={<ProductDetails />} />
                   <Route path="/categories" element={<Categories />} />
                   <Route path="/category/:categoryName" element={<CategoryPage />} />
+
                   {/* Auth Routes (only when NOT logged in) */}
-                  <Route path="/login" element={
-                    <PublicRoute>
-                      <Login />
-                    </PublicRoute>
-                  } />
-                  <Route path="/register" element={
-                    <PublicRoute>
-                      <Register />
-                    </PublicRoute>
-                  } />
+                  <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+                  <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
 
-                  {/* Protected Admin Route */}
-                  <Route path="/admin" element={
-                    <AdminRoute>
-                      <Admin />
-                    </AdminRoute>
-                  } />
+                  {/* Admin Route */}
+                  <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
 
-                  {/* Protected Customer Routes */}
-                  <Route path="/my-preorders" element={
-                    <AuthRoute>
-                      <MyPreOrders />
-                    </AuthRoute>
-                  } />
-
-                  <Route path="/cart" element={
-                    <AuthRoute>
-                      <Cart />
-                    </AuthRoute>
-                  } />
-
-                  <Route path="/my-orders" element={
-                    <AuthRoute>
-                      <MyOrders />
-                    </AuthRoute>
-                  } />
+                  {/* Customer Routes */}
+                  <Route path="/my-preorders" element={<AuthRoute><MyPreOrders /></AuthRoute>} />
+                  <Route path="/cart" element={<AuthRoute><Cart /></AuthRoute>} />
+                  <Route path="/my-orders" element={<AuthRoute><MyOrders /></AuthRoute>} />
 
                   {/* 404 Redirect */}
                   <Route path="*" element={<Navigate to="/" />} />
