@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { Zap, Package, BarChart3, Key, Rocket, Banknote, Palette } from "lucide-react";
 import "./Home.css";
-const API = "https://techaesthetics.onrender.com";
+
 function Home() {
   const statsRef = useRef(null);
   const { isAdmin } = useAuth();
