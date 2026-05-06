@@ -68,12 +68,14 @@ const ShipmentManager = memo(({
         </form>
       </div>
 
+      {/* ********** FIXED: Active Shipping Routes card ********** */}
       <div className="admin-card">
         <div className="card-header">
           <h2><span className="header-icon" style={{marginRight: '8px'}}><ClipboardList size={24}/></span> Active Shipping Routes</h2>
         </div>
-        <div className="product-table-container">
-          <table className="product-table">
+        {/* ---- Wrapper that enables horizontal scroll without breaking card width ---- */}
+        <div className="shipments-scroll-wrapper">
+          <table className="shipments-table">
             <thead>
               <tr>
                 <th>Batch ID</th>

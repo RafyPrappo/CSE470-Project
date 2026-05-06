@@ -4,7 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { AlertTriangle } from "lucide-react";
 import "./Login.css";
 // This is the ONLY place where the backend URL is written
-const API_BASE = "https://techaesthetics.onrender.com";
+const API_BASE = "http://localhost:5000";
 
 function Login() {
   const [formData, setFormData] = useState({

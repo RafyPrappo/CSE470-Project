@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { Package, Truck, Trash2, XCircle, AlertTriangle } from "lucide-react";
 import "./MyPreOrders.css";
-const API = "https://techaesthetics.onrender.com";
+const API = "http://localhost:5000";
 function MyPreOrders() {
     const [preOrders, setPreOrders] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -26,7 +26,7 @@ function MyPreOrders() {
     const fetchPreOrders = async () => {
         try {
             setLoading(true);
-            const res = await fetch("https://techaesthetics.onrender.com/api/preorders/my", {
+            const res = await fetch("http://localhost:5000/api/preorders/my", {
                 headers: {
                     "Authorization": `Bearer ${token}`
                 }
@@ -49,7 +49,7 @@ function MyPreOrders() {
         }
 
         try {
-            const res = await fetch(`https://techaesthetics.onrender.com/api/preorders/${id}/quantity`, {
+            const res = await fetch(`http://localhost:5000/api/preorders/${id}/quantity`, {
                 method: 'PUT',
                 headers: {
                     "Content-Type": "application/json",
@@ -75,7 +75,7 @@ function MyPreOrders() {
 
     const removeCancelled = async (id) => {
         try {
-            const res = await fetch(`https://techaesthetics.onrender.com/api/preorders/${id}/remove`, {
+            const res = await fetch(`http://localhost:5000/api/preorders/${id}/remove`, {
                 method: 'DELETE',
                 headers: {
                     "Authorization": `Bearer ${token}`
@@ -99,7 +99,7 @@ function MyPreOrders() {
         }
 
         try {
-            const res = await fetch(`https://techaesthetics.onrender.com/api/preorders/${id}`, {
+            const res = await fetch(`http://localhost:5000/api/preorders/${id}`, {
                 method: 'DELETE',
                 headers: {
                     "Content-Type": "application/json",

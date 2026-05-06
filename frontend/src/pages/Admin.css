@@ -40,6 +40,8 @@
   border-radius: 24px;
   padding: 2rem;
   transition: all 0.3s ease;
+  width: 100%;
+  overflow-x: visible;
 }
 
 .admin-card:hover {
@@ -1123,8 +1125,9 @@
   display: flex;
   flex-direction: column;
   border: 1px solid rgba(59, 130, 246, 0.3);
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 25px 50px rgba(0,0,0,0.5);
   animation: slideUp 0.3s ease;
+  overflow: hidden;
 }
 
 .modal-header {
@@ -1150,7 +1153,7 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.2);
   color: white;
   font-size: 1.5rem;
@@ -1159,6 +1162,9 @@
   justify-content: center;
   cursor: pointer;
   transition: all 0.2s ease;
+  padding: 0;          
+  line-height: 1;     
+  text-align: center;
 }
 
 .modal-close:hover {
@@ -1287,6 +1293,8 @@
   align-items: center;
   gap: 1rem;
   flex-wrap: wrap;
+  margin: 0;
+  padding: 0;
 }
 
 .image-upload-input {
@@ -1311,6 +1319,7 @@
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
+  margin: 0;
 }
 
 .image-upload-button:hover {
@@ -1371,3 +1380,173 @@
   object-fit: cover;
 }
 
+/* More compact shipments table */
+.admin-card .product-table {
+  min-width: auto;
+  table-layout: fixed;  
+}
+
+.admin-card .product-table th,
+.admin-card .product-table td {
+  padding: 0.75rem 0.5rem;  
+  white-space: normal;     
+  word-break: break-word;
+}
+
+/* Specific column widths to avoid overflow */
+.admin-card .product-table th:nth-child(1), 
+.admin-card .product-table td:nth-child(1) {
+  width: 100px;
+}
+
+.admin-card .product-table th:nth-child(2),
+.admin-card .product-table th:nth-child(3), 
+.admin-card .product-table td:nth-child(2),
+.admin-card .product-table td:nth-child(3) {
+  width: 80px;
+}
+
+.admin-card .product-table th:nth-child(4),
+.admin-card .product-table td:nth-child(4) {
+  width: 100px;
+}
+
+.admin-card .product-table th:nth-child(5), 
+.admin-card .product-table td:nth-child(5) {
+  width: 90px;
+}
+
+.admin-card .product-table th:nth-child(6), 
+.admin-card .product-table td:nth-child(6) {
+  width: 70px;
+}
+
+.admin-card .product-table th:nth-child(7), 
+.admin-card .product-table td:nth-child(7) {
+  width: 130px;
+}
+
+
+.product-table-container {
+  overflow-x: auto;
+  border-radius: 16px;
+}
+
+@media (max-width: 1000px) {
+  .admin-card .product-table {
+    min-width: 800px;
+  }
+  .product-table-container {
+    overflow-x: auto;
+  }
+}
+
+
+
+/* ---------- Shipments table – clean, scalable, row dividers ---------- */
+.shipments-scroll-wrapper {
+  overflow-x: auto;
+  overflow-y: visible;
+  width: 100%;
+  margin-top: 1rem;
+  border-radius: 8px;
+}
+
+.shipments-table {
+  width: 100%;
+  min-width: 950px;          /* enough for 6 columns (adjust as needed) */
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+/* Header styling */
+.shipments-table thead tr {
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.shipments-table th {
+  padding: 1rem 0.8rem;
+  text-align: left;
+  font-weight: 600;
+  color: var(--gray-300);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 0.85rem;
+  border-bottom: 2px solid rgba(59, 130, 246, 0.3);
+}
+
+/* Row styling + subtle dividers */
+.shipments-table td {
+  padding: 0.9rem 0.8rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);   /* subtle line between rows */
+  color: var(--gray-300);
+  vertical-align: middle;
+}
+
+/* Optional: hover effect for better readability */
+.shipments-table tbody tr:hover {
+  background: rgba(59, 130, 246, 0.05);
+}
+.shipments-table tbody tr:hover td {
+  color: white;
+}
+
+/* Prevent text wrapping in most columns (except maybe the Actions column) */
+.shipments-table td:not(:last-child),
+.shipments-table th:not(:last-child) {
+  white-space: nowrap;
+}
+
+/* Actions column (date picker) can wrap if needed */
+.shipments-table td:last-child,
+.shipments-table th:last-child {
+  white-space: normal;
+  min-width: 140px;
+}
+
+/* Date input inside table */
+.shipments-table input[type="date"] {
+  padding: 0.4rem 0.6rem;
+  font-size: 0.85rem;
+  background: var(--gray-800);
+  border: 1px solid var(--gray-600);
+  border-radius: 6px;
+  color: white;
+  width: 100%;
+  cursor: pointer;
+}
+.shipments-table input[type="date"]:hover {
+  border-color: var(--primary-light);
+}
+
+/* Status select dropdown */
+.shipments-table select {
+  background: var(--gray-800);
+  border: 1px solid var(--accent-main);
+  border-radius: 6px;
+  color: white;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  min-width: 110px;
+}
+
+/* Batch ID */
+.shipments-table {
+  width: 100%;
+  min-width: 850px;
+  border-collapse: collapse;
+}
+
+/* Custom scrollbar (horizontal) */
+.shipments-scroll-wrapper::-webkit-scrollbar {
+  height: 6px;
+}
+.shipments-scroll-wrapper::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+}
+.shipments-scroll-wrapper::-webkit-scrollbar-thumb {
+  background: var(--primary-light);
+  border-radius: 10px;
+}

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import "./Products.css"; // Reuse general layout styles
-const API = "https://techaesthetics.onrender.com";
+const API = "http://localhost:5000";
 function Categories() {
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -12,7 +12,7 @@ function Categories() {
 
     const fetchCategories = async () => {
         try {
-            const res = await fetch("https://techaesthetics.onrender.com/api/categories");
+            const res = await fetch("http://localhost:5000/api/categories");
             if (res.ok) {
                 setCategories(await res.json());
             }

@@ -4,7 +4,7 @@ import { CheckCircle, AlertTriangle, XCircle, ShoppingCart } from "lucide-react"
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 import "./ProductDetails.css";
-const API = "https://techaesthetics.onrender.com";
+const API = "http://localhost:5000";
 function ProductDetails() {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -24,7 +24,7 @@ function ProductDetails() {
     const fetchProduct = async () => {
         try {
             setLoading(true);
-            const res = await fetch(`https://techaesthetics.onrender.com/api/products/${id}`);
+            const res = await fetch(`http://localhost:5000/api/products/${id}`);
             if (!res.ok) throw new Error("Product not found");
             const data = await res.json();
             setProduct(data);
@@ -64,7 +64,7 @@ function ProductDetails() {
         try {
             if (isPreOrderRequest) {
                 // Pre-order flow
-                const response = await fetch("https://techaesthetics.onrender.com/api/preorders", {
+                const response = await fetch("http://localhost:5000/api/preorders", {
                     method: 'POST',
                     headers: {
                         "Content-Type": "application/json",

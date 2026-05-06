@@ -5,7 +5,7 @@ import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 import ProductCard from "../components/ProductCard";
 import "./Products.css";
-const API = "https://techaesthetics.onrender.com";
+const API = "http://localhost:5000";
 function Products() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -36,7 +36,7 @@ function Products() {
 
   const fetchCategories = async () => {
     try {
-      const res = await fetch("https://techaesthetics.onrender.com/api/categories");
+      const res = await fetch("http://localhost:5000/api/categories");
       if (res.ok) {
         const data = await res.json();
         setCategories(data);
@@ -49,7 +49,7 @@ function Products() {
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      const res = await fetch("https://techaesthetics.onrender.com/api/products/");
+      const res = await fetch("http://localhost:5000/api/products/");
       if (!res.ok) throw new Error('Failed to fetch products');
       const data = await res.json();
       setProducts(data);
@@ -65,7 +65,7 @@ function Products() {
   const fetchUserPreOrders = async () => {
     if (!isAuthenticated || !token) return;
     try {
-      const res = await fetch("https://techaesthetics.onrender.com/api/preorders/my", {
+      const res = await fetch("http://localhost:5000/api/preorders/my", {
         headers: {
           "Authorization": `Bearer ${token}`
         }
@@ -113,7 +113,7 @@ function Products() {
         const newQuantity = existingPreOrder.quantity + quantity;
 
         try {
-          const response = await fetch(`https://techaesthetics.onrender.com/api/preorders/${existingPreOrder._id}/quantity`, {
+          const response = await fetch(`http://localhost:5000/api/preorders/${existingPreOrder._id}/quantity`, {
             method: 'PUT',
             headers: {
               "Content-Type": "application/json",
@@ -155,7 +155,7 @@ function Products() {
 
       // Create a new pre-order if one doesn't exist
       try {
-        const response = await fetch("https://techaesthetics.onrender.com/api/preorders", {
+        const response = await fetch("http://localhost:5000/api/preorders", {
           method: 'POST',
           headers: {
             "Content-Type": "application/json",

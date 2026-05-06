@@ -3,7 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { AlertTriangle } from "lucide-react";
 import "./Register.css";
-const API = "https://techaesthetics.onrender.com";
+const API = "http://localhost:5000";
 function Register() {
   const [formData, setFormData] = useState({
     name: "",
@@ -41,7 +41,7 @@ function Register() {
     setError("");
     
     try {
-      const response = await fetch("https://techaesthetics.onrender.com/api/auth/register", {
+      const response = await fetch("http://localhost:5000/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

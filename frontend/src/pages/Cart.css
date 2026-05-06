@@ -29,6 +29,29 @@
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+.empty-cart-content .primary-btn {
+  background: linear-gradient(135deg, var(--primary-main), var(--primary-light));
+  color: white;
+  border: none;
+  padding: 0.8rem 2rem;
+  border-radius: 40px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 1rem;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.empty-cart-content .primary-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+}
+
+.empty-cart-content .primary-btn:active {
+  transform: translateY(0);
+}
+
 .empty-icon {
     font-size: 4rem;
     display: block;
